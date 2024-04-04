@@ -1,14 +1,17 @@
-import { Button } from "@/components/ui/button"
-import {Login} from './pages/login'
-import { Dashboard } from "./pages/dashboard"
+import { Button } from "@/components/ui/button";
+import { Login } from "./pages/RegisterInfo/Login";
+import { Dashboard } from "./pages/dashboard";
+import { SignUp } from "./pages/RegisterInfo/Signup";
 
 function App() {
-
   return (
     <>
-      <Dashboard/>
+      {/* <Dashboard/> */}
+
+      {/* <Login /> */}
+      {/* <SignUp /> */}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
