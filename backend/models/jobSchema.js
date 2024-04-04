@@ -1,4 +1,3 @@
-// import mongoose from 'mongoose';
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
@@ -99,10 +98,26 @@ const jobTrackerSchema = new Schema(
   { timestamps: true }
 );
 
+const jobSchema = new Schema(
+  {
+    id: Schema.Types.ObjectId,
+    title: String,
+    requirements: [String],
+    location: String,
+    salaryRange: String,
+    description: String,
+    createdBy: Schema.Types.ObjectId,
+    candidates: [Schema.Types.ObjectId],
+    createdAt: { type: Date, default: Date.now }
+  },
+  { timestamps: true }
+);
+
 const User = mongoose.model('User', userSchema);
 const Resumes = mongoose.model('Resumes', resumesSchema);
 const JobTracker = mongoose.model('JobTracker', jobTrackerSchema);
 const ResumesATS = mongoose.model('ResumesATS', resumesAtsSchema);
 const Interviewer = mongoose.model('Interviewer', interviewerSchema);
+const Job = mongoose.model('Job', jobSchema);
 
-module.exports = { User, Resumes, JobTracker, ResumesATS, Interviewer };
+module.exports = { User, Resumes, JobTracker, ResumesATS, Interviewer, Job };
