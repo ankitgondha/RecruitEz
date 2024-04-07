@@ -107,11 +107,22 @@ const jobSchema = new Schema(
     salaryRange: String,
     description: String,
     createdBy: Schema.Types.ObjectId,
+    seats: {
+      type: Number,
+      default: 10
+    },
+    active: {
+      type: Boolean,
+      default: true
+    },
     candidates: [Schema.Types.ObjectId],
+    hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );
+
+
 
 const User = mongoose.model('User', userSchema);
 const Resumes = mongoose.model('Resumes', resumesSchema);

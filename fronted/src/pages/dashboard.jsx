@@ -1,7 +1,11 @@
+import React from 'react';
+import useDataFetch from '../hooks/useDataFetch.jsx';
+import { Link } from 'react-router-dom';
 import {
   Bell,
   File,
   CircleUser,
+  ChevronRight,
   PlusCircle,
   Home,
   LineChart,
@@ -52,8 +56,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useNavigate } from 'react-router-dom';
+
+
 
 export function Dashboard() {
+
+
+  const jobs = useDataFetch('http://localhost:3000/jobs/all');
+  console.log(jobs);
+
+  const navigate = useNavigate();
+
+  const handleJobClick = (id) => {
+    navigate('/jobdashboard', { state: { jobId: id } });
+  }
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -119,13 +138,11 @@ export function Dashboard() {
 
           <div className="w-full flex-1">
             <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search products..."
-                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                />
+            <div className="relative">
+                <div className="flex items-center gap-2 font-semibold">
+                  <span className="">Dashboard</span>
+                </div>
+
               </div>
             </form>
           </div>
@@ -190,7 +207,7 @@ export function Dashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Interview Pending</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Interview Pending</CardTitle>
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -204,6 +221,8 @@ export function Dashboard() {
 
           {/* //table */}
           <main className="grid flex-1 items-start ">
+
+
             <Card>
               <CardHeader>
                 <CardTitle>Recent Posted Jobs</CardTitle>
@@ -231,43 +250,54 @@ export function Dashboard() {
                       </TableHead>
                     </TableRow>
                   </TableHeader>
+
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Software Engineer
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">Active</Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        24
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        0
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        2023-07-12 10:42 AM
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-haspopup="true"
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Toggle menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+
+                    {jobs.map((job, index) => (
+                      <TableRow key={index} >
+                        <TableCell className="font-medium">
+                          {job.title}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {job.active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {job.candidates.length}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {job.hired.length}/{job.seats}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {job.createdAt.slice(0, 10)}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem>Edit</DropdownMenuItem>
+                              <DropdownMenuItem>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell" onClick={() => handleJobClick(job._id)}>
+                          <Button size="icon" variant="outline" className="h-6 w-6">
+                            <ChevronRight className="h-5 w-5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
 
                   </TableBody>
                 </Table>

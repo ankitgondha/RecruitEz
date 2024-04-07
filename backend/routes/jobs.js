@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { Job } = require('./models'); // Adjust the path as necessary
+const { Job } = require('../models/jobSchema.js'); 
 
 // POST - Create a new job
 router.post('/', async (req, res) => {
   try {
     const job = new Job({
       ...req.body,
-      createdBy: req.body.createdBy, // Assume createdBy is passed in the request
+      createdBy: req.body.createdBy, // This should be the ID of the user who created the job
     });
     await job.save();
     res.status(201).send(job);

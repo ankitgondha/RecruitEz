@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import {
   Bell,
   File,
@@ -55,8 +56,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import useDataFetch from '@/hooks/useDataFetch';
 
 export function JobDashboard() {
+  const location = useLocation();
+  const { jobId } = location.state || {};
+  console.log(jobId);
+
+  const job = useDataFetch(`http://localhost:3000/jobs/6611275dae5eead627301fcb`);
+  console.log(job);
+
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -123,12 +133,10 @@ export function JobDashboard() {
           <div className="w-full flex-1">
             <form>
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search products..."
-                  className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                />
+                <div className="flex items-center gap-2 font-semibold">
+                  <span className="">Dashboard - {job.title}</span>
+                </div>
+
               </div>
             </form>
           </div>
@@ -151,29 +159,16 @@ export function JobDashboard() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Active Jobs
-                </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">
-                  +20.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Candidates Applied
+                  Candidates Applied for this Role
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">150</div>
+                <div className="text-2xl font-bold">{job?.candidates?.length ?? 0}</div>
                 <p className="text-xs text-muted-foreground">
                   +180.1% from last month
                 </p>
@@ -181,11 +176,11 @@ export function JobDashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Candidates Hired</CardTitle>
+                <CardTitle className="text-sm font-medium">Candidates Hired for this Role</CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">136</div>
+                <div className="text-2xl font-bold">{job?.hired?.length ?? 0}</div>
                 <p className="text-xs text-muted-foreground">
                   +19% from last month
                 </p>
@@ -228,9 +223,9 @@ export function JobDashboard() {
               <TabsContent value="week">
                 <Card>
                   <CardHeader className="px-7">
-                    <CardTitle>Orders</CardTitle>
+                    <CardTitle>Candidates</CardTitle>
                     <CardDescription>
-                      Recent orders from your store.
+                      Recently applied for this role.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
