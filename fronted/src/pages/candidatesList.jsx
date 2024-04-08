@@ -4,7 +4,6 @@ import {
   File,
   CircleUser,
   PlusCircle,
-  ChevronRight,
   Home,
   LineChart,
   Menu,
@@ -58,22 +57,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
-import { useNavigate } from 'react-router-dom';
 
-export function JobDashboard() {
+export function CandidatesList() {
   const location = useLocation();
   const { jobId } = location.state || {};
   console.log(jobId);
 
-  const job = useDataFetch(`http://localhost:3000/jobs/${jobId}`);
+  const job = useDataFetch(`http://localhost:3000/jobs/6611275dae5eead627301fcb`);
   console.log(job);
-
-
-  const navigate = useNavigate();
-
-  const handleJobClick = (id) => {
-    navigate('/candidateslist', { state: { jobId: id } });
-  }
 
 
   return (
@@ -167,49 +158,7 @@ export function JobDashboard() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Candidates Applied for this Role
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{job?.candidates?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +180.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Candidates Hired for this Role</CardTitle>
-                <CreditCard className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{job?.hired?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +19% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Interview Pending</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{job.interviews}</div>
-                <p className="text-xs text-muted-foreground">
-                  +201% since last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-
+          
           {/* //table */}
 
 
@@ -225,12 +174,30 @@ export function JobDashboard() {
                 </TabsList>
                 
                 <div className="ml-auto flex items-center gap-2">
-                <Button size="sm" className="h-8 gap-1" onClick={() => handleJobClick(job._id)}>
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    View All
-                  </span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <ListFilter className="h-3.5 w-3.5" />
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Filter
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem checked>
+                      All
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>ATS</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>College</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>CGPA</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>Degree</DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem>
+                      Location
+                    </DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
               </div>
 

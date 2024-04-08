@@ -128,7 +128,7 @@ export function Dashboard() {
           </div>
           <div className="mt-auto p-4">
             <Button size="sm" className="w-full">
-              Sing Out
+              Sign Out
             </Button>
           </div>
         </div>

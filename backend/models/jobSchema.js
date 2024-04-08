@@ -107,6 +107,7 @@ const jobSchema = new Schema(
     salaryRange: String,
     description: String,
     createdBy: Schema.Types.ObjectId,
+    interviews: Number,
     seats: {
       type: Number,
       default: 10
