@@ -20,7 +20,7 @@ import {
   ShoppingCart,
   Users,
   MoreHorizontal,
-} from "lucide-react"
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -28,15 +28,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -44,7 +39,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,12 +48,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+<<<<<<< Updated upstream
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useNavigate } from 'react-router-dom';
 
 
+=======
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+>>>>>>> Stashed changes
 
 export function Dashboard() {
 
@@ -135,7 +136,6 @@ export function Dashboard() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-
           <div className="w-full flex-1">
             <form>
             <div className="relative">
@@ -195,7 +195,9 @@ export function Dashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Candidates Hired</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Total Candidates Hired
+                </CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -207,7 +209,13 @@ export function Dashboard() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+<<<<<<< Updated upstream
                 <CardTitle className="text-sm font-medium">Total Interview Pending</CardTitle>
+=======
+                <CardTitle className="text-sm font-medium">
+                  Interview Pending
+                </CardTitle>
+>>>>>>> Stashed changes
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -252,6 +260,7 @@ export function Dashboard() {
                   </TableHeader>
 
                   <TableBody>
+<<<<<<< Updated upstream
 
                     {jobs.map((job, index) => (
                       <TableRow key={index} >
@@ -299,21 +308,47 @@ export function Dashboard() {
                       </TableRow>
                     ))}
 
+=======
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Software Engineer
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">Active</Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">24</TableCell>
+                      <TableCell className="hidden md:table-cell">0</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        2023-07-12 10:42 AM
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+>>>>>>> Stashed changes
                   </TableBody>
                 </Table>
               </CardContent>
-
             </Card>
-
-
-
           </main>
-
-
-
         </main>
-
       </div>
     </div>
-  )
+  );
 }
