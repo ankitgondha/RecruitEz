@@ -1,8 +1,7 @@
-
-import { Dashboard } from "./pages/dashboard"
-import { JobDashboard } from './pages/jobDashboard'
+import { Dashboard } from "./pages/dashboard";
+import { JobDashboard } from "./pages/jobDashboard";
 import { Navigate } from "react-router-dom";
-import { CandidatesList } from './pages/candidatesList';
+import { CandidatesList } from "./pages/candidatesList";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
@@ -12,13 +11,16 @@ import ForgotPassword from "./pages/RegisterInfo/ForgotPassword";
 import RecruiterProfile from "./pages/Create-Profile/RecruiterProfile";
 import CandidateProfile from "./pages/Create-Profile/CandidateProfile";
 import { InterviewList } from "./pages/InterviewList";
+import { JobDashboard } from "./pages/jobDashboard";
+import { CandidateDashboard } from "./pages/Candidate/CandidateDashboard";
+import SearchJobs from "./pages/Candidate/SearchJobs";
+import JobDescription from "./pages/Candidate/JobDescription";
 
 function App() {
-
   return (
     <>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/jobDashboard" element={<JobDashboard />} />
         <Route path="/candidateslist" element={<CandidatesList />} />
         <Route path="/interviewlist" element={<InterviewList />} />
@@ -28,9 +30,12 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/recruiter-profile" element={<RecruiterProfile />} />
         <Route path="/candidate-profile" element={<CandidateProfile />} />
+        <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+        <Route path="/search-jobs" element={<SearchJobs />} />
+        <Route path="/job-description" element={<JobDescription />} />
       </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
