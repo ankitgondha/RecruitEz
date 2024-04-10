@@ -116,9 +116,10 @@ const jobSchema = new Schema(
       default: true
     },
     status: {
-      type: String,
-      default: 'none'
+      type: [String], 
+      default: ['applied']
     },
+    appliedDate: { type: [Date], default: Date.now },
     candidates: [Schema.Types.ObjectId],
     hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now },

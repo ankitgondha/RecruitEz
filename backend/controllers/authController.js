@@ -18,9 +18,6 @@ export const registerController = async (req, res) => {
       return res.send({ message: "Answer is Required" });
     }
 
-    if (!role) {
-      return res.send({ message: "Role is Required" });
-    }
     //check user
 
     if (role == 1) {

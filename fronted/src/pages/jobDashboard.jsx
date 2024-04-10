@@ -18,6 +18,7 @@ import {
   ShoppingCart,
   Users,
   MoreHorizontal,
+  Eye,
 
 
 
@@ -184,9 +185,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.candidates?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +180.1% from last month
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -196,9 +194,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.hired?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +19% from last month
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -210,9 +205,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.interviews?.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  +201% since last month
-                </p>
               </CardContent>
 
             </Card>
@@ -256,7 +248,7 @@ export function JobDashboard() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Customer</TableHead>
+                          <TableHead>Candidates</TableHead>
                           <TableHead className="hidden sm:table-cell">
                             Gender
                           </TableHead>
@@ -266,14 +258,14 @@ export function JobDashboard() {
                           <TableHead className="hidden md:table-cell">
                             Date
                           </TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead className="text-right">Resume</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
 
 
                         {jobCandidates && jobCandidates.length > 0 ? (
-                          jobCandidates.map((candidate) => (
+                          jobCandidates.map((candidate, index) => (
                             <TableRow>
                               <TableCell>
                                 <div className="font-medium">{candidate.name}</div>
@@ -286,13 +278,15 @@ export function JobDashboard() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  Pending
+                                  {job.status[index] ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                2023-06-24
+                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
-                              <TableCell className="text-right">$150.00</TableCell>
+                              <TableCell className="text-right">
+                                <Eye className="h-4 w-4" />
+                              </TableCell>
                             </TableRow>
                           ))
                         ) : (

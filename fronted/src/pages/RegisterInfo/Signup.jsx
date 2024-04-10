@@ -13,26 +13,26 @@ export function SignUp() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [answer, setAnswer] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
-  const [role, setRole] = useState("0");
+  const [role, setRole] = useState(0);
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log(
-    //   registerEmail,
-    //   registerPassword,
-    //   answer,
-    //   registerConfirmPassword,
-    //   role
-    // );
+    console.log(
+      registerEmail,
+      registerPassword,
+      answer,
+      registerConfirmPassword,
+      role
+    );
     try {
       const res = await axios.post("http://localhost:8080/api/v1/auth/register", {
         email: registerEmail,
         password: registerPassword,
-        answer,
-        role,
+        answer: answer,
+        role: role,
       });
       console.log(res);
 
@@ -60,7 +60,8 @@ export function SignUp() {
   };
 
   const handleRoleChange = (event) => {
-    const value = parseInt(event.target.value); // Convert value to integer
+    const value = parseInt(event.target.value);
+    console.log(value); // Convert value to integer
     setRole(value); // Update role state based on selected value
   };
 
