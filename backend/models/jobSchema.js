@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const userSchema = new Schema(
   {
@@ -107,7 +107,6 @@ const jobSchema = new Schema(
     salaryRange: String,
     description: String,
     createdBy: Schema.Types.ObjectId,
-    interviews: Number,
     seats: {
       type: Number,
       default: 10
@@ -118,7 +117,8 @@ const jobSchema = new Schema(
     },
     candidates: [Schema.Types.ObjectId],
     hired: [Schema.Types.ObjectId],
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    interviews : [Schema.Types.ObjectId]
   },
   { timestamps: true }
 );
@@ -132,4 +132,4 @@ const ResumesATS = mongoose.model('ResumesATS', resumesAtsSchema);
 const Interviewer = mongoose.model('Interviewer', interviewerSchema);
 const Job = mongoose.model('Job', jobSchema);
 
-module.exports = { User, Resumes, JobTracker, ResumesATS, Interviewer, Job };
+export { User, Resumes, JobTracker, ResumesATS, Interviewer, Job };

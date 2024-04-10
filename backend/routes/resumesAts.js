@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { ResumesATS } = require('../models/jobSchema.js'); // Adjust the path as necessary
+import { ResumesATS } from '../models/jobSchema.js'; 
 
 // POST - Create a new resume
 router.post('/', async (req, res) => {
@@ -62,4 +62,4 @@ router.delete('/:resumeId', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

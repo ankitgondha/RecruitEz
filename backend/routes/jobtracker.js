@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { JobTracker } = require('../models/jobSchema.js'); 
+import { JobTracker } from '../models/jobSchema.js';
 
 // POST - Create a new job tracker record for a user
 router.post('/', async (req, res) => {
@@ -62,4 +62,4 @@ router.delete('/:jobTrackerId', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

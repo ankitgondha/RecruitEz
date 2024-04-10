@@ -58,7 +58,8 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
 
-export function CandidatesList() {
+
+export function InterviewList() {
   const location = useLocation();
   const { jobId } = location.state || {};
   console.log(jobId);
@@ -68,6 +69,9 @@ export function CandidatesList() {
   
   const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
   console.log(jobCandidates);
+  
+  const jobInterviews = useDataFetch(`http://localhost:8080/jobs/${jobId}/interviews`);
+  console.log(jobInterviews);
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -136,7 +140,7 @@ export function CandidatesList() {
             <form>
               <div className="relative">
                 <div className="flex items-center gap-2 font-semibold">
-                  <span className="">All Candidates - {job.title}</span>
+                  <span className="">Interviews Pending - {job.title}</span>
                 </div>
 
               </div>
@@ -168,50 +172,12 @@ export function CandidatesList() {
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
 
             <Tabs defaultValue="week">
-              <div className="flex items-center">
-                <TabsList>
-                  <TabsTrigger value="week">All Candidates</TabsTrigger>
-                  <TabsTrigger value="month">Top Candidates</TabsTrigger>
-                  <TabsTrigger value="year">Selected Candidates</TabsTrigger>
-                </TabsList>
-                
-                <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-3.5 w-3.5" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                      All
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>ATS</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>College</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>CGPA</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Degree</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Location
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-              </div>
-
-              </div>
-
-
               <TabsContent value="week">
                 <Card>
                   <CardHeader className="px-7">
-                    <CardTitle>Candidates</CardTitle>
+                    <CardTitle>Candidates Interviews Pending</CardTitle>
                     <CardDescription>
-                      Recently applied for this role.
+                      Interview pending candidates for the job.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -234,8 +200,8 @@ export function CandidatesList() {
                       <TableBody>
                         
 
-                        {jobCandidates && jobCandidates.length > 0 ? (
-                          jobCandidates.map((candidate) => (
+                        {jobInterviews && jobInterviews.length > 0 ? (
+                          jobInterviews.map((candidate) => (
                             <TableRow>
                           <TableCell>
                             <div className="font-medium">{candidate.name}</div>
@@ -272,9 +238,6 @@ export function CandidatesList() {
               </TabsContent>
               
             </Tabs>
-          </div>
-          <div>
-
           </div>
 
 

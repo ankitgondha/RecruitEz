@@ -1,13 +1,15 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { Job } = require('../models/jobSchema.js'); 
+import { Job } from '../models/jobSchema.js';
+import { Candidate } from '../models/candidateModel.js';
+
 
 // POST - Create a new job
 router.post('/', async (req, res) => {
   try {
     const job = new Job({
       ...req.body,
-      createdBy: req.body.createdBy, // This should be the ID of the user who created the job
+      createdBy: req.body.createdBy, 
     });
     await job.save();
     res.status(201).send(job);
@@ -39,6 +41,35 @@ router.get('/:jobId', async (req, res) => {
   }
 });
 
+// GET - Retrieve all candidates for a job by ID
+router.get('/:jobId/candidates', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.jobId);
+    if (!job) {
+      return res.status(404).send();
+    }
+    const candidates = await Candidate.find({ _id: { $in: job.candidates } });
+    res.send(candidates);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+// GET - Retrieve all candidates for a job by ID for Interviews
+router.get('/:jobId/interviews', async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.jobId);
+    if (!job) {
+      return res.status(404).send();
+    }
+    const candidates = await Candidate.find({ _id: { $in: job.interviews } });
+    res.send(candidates);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+
 // PUT - Update a job by ID
 router.put('/:jobId', async (req, res) => {
   try {
@@ -65,4 +96,4 @@ router.delete('/:jobId', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
