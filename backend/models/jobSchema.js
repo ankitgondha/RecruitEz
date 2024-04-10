@@ -115,6 +115,10 @@ const jobSchema = new Schema(
       type: Boolean,
       default: true
     },
+    status: {
+      type: String,
+      default: 'none'
+    },
     candidates: [Schema.Types.ObjectId],
     hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now },
