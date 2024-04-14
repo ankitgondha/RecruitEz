@@ -11,7 +11,6 @@ import ForgotPassword from "./pages/RegisterInfo/ForgotPassword";
 import RecruiterProfile from "./pages/Create-Profile/RecruiterProfile";
 import CandidateProfile from "./pages/Create-Profile/CandidateProfile";
 import { InterviewList } from "./pages/InterviewList";
-import { JobDashboard } from "./pages/jobDashboard";
 import { CandidateDashboard } from "./pages/Candidate/CandidateDashboard";
 import SearchJobs from "./pages/Candidate/SearchJobs";
 import JobDescription from "./pages/Candidate/JobDescription";

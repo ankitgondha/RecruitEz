@@ -19,6 +19,7 @@ import {
   Users,
   MoreHorizontal,
   Eye,
+  Star,
 
 
 
@@ -60,6 +61,8 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 export function JobDashboard() {
   const location = useLocation();
@@ -81,6 +84,18 @@ export function JobDashboard() {
   const handleJobClick2 = (id) => {
     navigate('/interviewlist', { state: { jobId: id } });
   }
+
+  const handleSelected = async (index) => {
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/toggle-selected/${jobId}`, {
+        index
+      });
+
+      console.log('Toggle Success:', response.data);
+    } catch (error) {
+      console.error('Error toggling selected:', error);
+    }
+  };
 
 
   return (
@@ -217,12 +232,12 @@ export function JobDashboard() {
 
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
 
-            <Tabs defaultValue="week">
+            <Tabs defaultValue="all">
               <div className="flex items-center">
                 <TabsList>
-                  <TabsTrigger value="week">All Candidates</TabsTrigger>
-                  <TabsTrigger value="month">Top Candidates</TabsTrigger>
-                  <TabsTrigger value="year">Selected Candidates</TabsTrigger>
+                  <TabsTrigger value="all">All Candidates</TabsTrigger>
+                  <TabsTrigger value="top">Top Candidates</TabsTrigger>
+                  <TabsTrigger value="selected">Selected Candidates</TabsTrigger>
                 </TabsList>
 
                 <div className="ml-auto flex items-center gap-2">
@@ -236,10 +251,10 @@ export function JobDashboard() {
                 </div>
 
               </div>
-              <TabsContent value="week">
+              <TabsContent value="all">
                 <Card>
                   <CardHeader className="px-7">
-                    <CardTitle>Candidates</CardTitle>
+                    <CardTitle>All Candidates</CardTitle>
                     <CardDescription>
                       Recently applied for this role.
                     </CardDescription>
@@ -258,7 +273,10 @@ export function JobDashboard() {
                           <TableHead className="hidden md:table-cell">
                             Date
                           </TableHead>
-                          <TableHead className="text-right">Resume</TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Resume
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">Select</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -285,10 +303,98 @@ export function JobDashboard() {
                                 {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-5 w-5" color='#313944' />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {job.selected && job.selected[index] ? (
+                                  <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                ) : (
+                                  <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
+                                )}
                               </TableCell>
                             </TableRow>
                           ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan="number_of_columns">
+                              No candidates found.
+                            </TableCell>
+                          </TableRow>
+                        )}
+
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="selected">
+                <Card>
+                  <CardHeader className="px-7">
+                    <CardTitle>Selected Candidates</CardTitle>
+                    <CardDescription>
+                      Candidates selected for this role.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Candidates</TableHead>
+                          <TableHead className="hidden sm:table-cell">
+                            Gender
+                          </TableHead>
+                          <TableHead className="hidden sm:table-cell">
+                            Status
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Date
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Resume
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">Select</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+
+
+                        {jobCandidates && jobCandidates.length > 0 ? (
+                          jobCandidates
+                            .map((candidate, index) => ({ candidate, index })) 
+                            .filter(({ _, index }) => job.selected[index]) 
+                            .map(({ candidate, index }) => (
+                              <TableRow>
+                                <TableCell>
+                                  <div className="font-medium">{candidate.name}</div>
+                                  <div className="hidden text-sm text-muted-foreground md:inline">
+                                    {candidate.email}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                  {candidate.gender === 1 ? "Male" : "Female"}
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                  <Badge className="text-xs" variant="outline">
+                                    {job.status[index] ?? "Pending"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="hidden md:table-cell">
+                                  {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Eye className="h-5 w-5" color='#313944' />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {job.selected && job.selected[index] ? (
+                                    <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                  ) : (
+                                    <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
+                                  )}
+                                </TableCell>
+                              </TableRow>
+
+                            ))
                         ) : (
                           <TableRow>
                             <TableCell colSpan="number_of_columns">

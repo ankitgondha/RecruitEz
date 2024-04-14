@@ -83,6 +83,33 @@ router.put('/:jobId', async (req, res) => {
   }
 });
 
+// PUT - update selected array to a job by ID
+router.put('/toggle-selected/:jobId', async (req, res) => {
+  const { index } = req.body;
+  const { jobId } = req.params;
+
+  try {
+      // Fetch the current job to access the current state of 'selected'
+      const job = await Job.findById(jobId);
+      if (!job) {
+          return res.status(404).json({ success: false, message: "Job not found" });
+      }
+
+      // Toggle the boolean at the specified index
+      const currentValue = job.selected[index];
+      const newValue = !currentValue;
+
+      // Update the job with the new value
+      const result = await Job.updateOne(
+          { _id: jobId },
+          { $set: { [`selected.${index}`]: newValue } }
+      );
+      res.status(200).json({ success: true, data: result });
+  } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // DELETE - Delete a job by ID
 router.delete('/:jobId', async (req, res) => {
   try {

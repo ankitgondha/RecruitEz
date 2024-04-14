@@ -194,14 +194,13 @@ export function InterviewList() {
                           <TableHead className="hidden md:table-cell">
                             Date
                           </TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         
 
                         {jobInterviews && jobInterviews.length > 0 ? (
-                          jobInterviews.map((candidate) => (
+                          jobInterviews.map((candidate, index) => (
                             <TableRow>
                           <TableCell>
                             <div className="font-medium">{candidate.name}</div>
@@ -218,9 +217,16 @@ export function InterviewList() {
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            2023-06-24
+                          {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
                           </TableCell>
-                          <TableCell className="text-right">$150.00</TableCell>
+                          <TableCell>
+                              <Button variant="" size="sm">
+                                Hire
+                              </Button>
+                              {/* <Button variant="outline" className="ml-3" size="sm">
+                                Reject
+                              </Button> */}
+                            </TableCell>
                         </TableRow>
                           ))
                         ) : (
