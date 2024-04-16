@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify ,render_template
 import fitz  # PyMuPDF
 from unidecode import unidecode
 import torch
@@ -110,31 +110,31 @@ def conversion(predicted_labels,tokenized_resume):
 
 
 
-
+@app.route('/')
+def main():
+    return render_template("index.html")
 
 @app.route('/predict', methods=['POST'])
 def predict_resume():
  
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(f.filename)
 
-    file = request.files['file']
-    if file.filename == '' or not file.filename.endswith('.pdf'):
-        return jsonify({'error': 'Invalid file format. Please upload a PDF file.'}), 400
-
-
-    file_path = 'temp.pdf'
-    file.save(file_path)
+    file_path = f.filename
     resume_text = extract_text_from_pdf(file_path)
     response=[]
+    print(resume_text)
+    finl_text = ""
 
+    for text in range(0, len(resume_text)):
+        finl_text += resume_text[text]
 
-    for text in range(0,len(resume_text)):
-        tokenized_resume = TOKENIZER.encode_plus(text, max_length=500, return_offsets_mapping=True)
-        resume_tokens = TOKENIZER.convert_ids_to_tokens(tokenized_resume['input_ids'])
-        predicted_labels = predict_resume_labels(text, model, TOKENIZER, idx2tag, max_len=500)
-        ProcessData=conversion(predicted_labels,tokenized_resume)
-        response.append(ProcessData)
+    tokenized_resume = TOKENIZER.encode_plus(finl_text, max_length=500, return_offsets_mapping=True)
+    resume_tokens = TOKENIZER.convert_ids_to_tokens(tokenized_resume['input_ids'])
+    predicted_labels = predict_resume_labels(finl_text, model, TOKENIZER, idx2tag, max_len=500)
+    ProcessData=conversion(predicted_labels,tokenized_resume)
+    response.append(ProcessData)
 
 
     return jsonify(response)
