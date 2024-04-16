@@ -1,4 +1,4 @@
-import { Dashboard } from "./pages/dashboard";
+import { Dashboard } from "./pages/Dashboard";
 import { JobDashboard } from "./pages/jobDashboard";
 import { Navigate } from "react-router-dom";
 import { CandidatesList } from "./pages/candidatesList";
@@ -14,6 +14,9 @@ import { InterviewList } from "./pages/InterviewList";
 import { CandidateDashboard } from "./pages/Candidate/CandidateDashboard";
 import SearchJobs from "./pages/Candidate/SearchJobs";
 import JobDescription from "./pages/Candidate/JobDescription";
+import AppliedJobs from "./pages/JobInfo/AppliedJobs";
+import ScheduledInterview from "./pages/JobInfo/ScheduledInterview";
+import Offers from "./pages/JobInfo/Offers";
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
         <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
         <Route path="/search-jobs" element={<SearchJobs />} />
         <Route path="/job-description" element={<JobDescription />} />
+        <Route path="/jobs-applied" element={<AppliedJobs />} />
+        <Route path="/scheduled-interviews" element={<ScheduledInterview />} />
+        <Route path="/offered-jobs" element={<Offers />} />
       </Routes>
     </>
   );

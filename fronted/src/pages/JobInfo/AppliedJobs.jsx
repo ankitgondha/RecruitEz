@@ -1,27 +1,7 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React, { useState, useEffect } from "react";
+import useDataFetch from "@/hooks/useDataFetch";
 
 import { useNavigate } from "react-router-dom";
-
 import {
   Bell,
   File,
@@ -52,7 +32,15 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,21 +50,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useLocation } from "react-router-dom";
 
-import useDataFetch from "@/hooks/useDataFetch";
+const AppliedJobs = () => {
+  const jobs = useDataFetch("http://localhost:8080/jobs/all");
+  console.log(jobs);
 
-const JobDescription = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { jobId } = location.state || {};
-  // console.log(jobId);
-  // const user = window.sessionStorage.getItem("user");
-  // console.log("userId hit");
-  // console.log(user);
+  const [appliedJob, setAppliedJobs] = useState("");
+  let jobsApp = [];
 
+  // jobs.forEach((job) => {
+  //   job.candidates.forEach((cand) => {
+  //     if(cand===userID)
+  //     {
+  //       jobsApp.append()
+  //     }
+  //   });
+  // });
   const [user, setUser] = useState({});
   const [userId, setUserId] = useState("");
 
@@ -92,29 +83,23 @@ const JobDescription = () => {
       }
     }
   }, []);
-  // console.log(userId);
-  const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
 
-  const handleApply = async () => {
-    // console.log(userId);
-    // console.log(job);
-    try {
-      const response = await axios.post("http://localhost:8080/jobs/apply", {
-        jobId,
-        userId,
-      });
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error Applying for the job", error.response.data);
+  for (let i = 0; i < jobs.length; i++) {
+    const candidates = jobs[i].candidates;
+
+    for (let j = 0; j < candidates.length; j++) {
+      console.log(candidates[j]);
+      console.log(userId);
+      if (candidates[j] === userId) {
+        console.log("hut")
+        jobsApp.push(j);
+      }
     }
-  };
+  }
 
-  // const timestamp = job.createdAt;
-  // const date = new Date(timestamp);
-  // const formattedDate = date.toISOString().split("T")[0];
-  // console.log(formattedDate);
-  // const formattedDate = timeStamp.slice(0, 10);
-  // console.log(formattedDate);
+  console.log(jobsApp);
+
+  const navigate = useNavigate();
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -146,26 +131,23 @@ const JobDescription = () => {
                 <Search className="h-4 w-4" />
                 Search Jobs
               </div>
-              <div
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
                 <Package className="h-4 w-4" />
                 Jobs Applied
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/scheduled-interviews")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                Candidates
+                Interview Scheduled
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/offered-jobs")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
-                Analytics
+                Offers
               </div>
             </nav>
           </div>
@@ -208,40 +190,49 @@ const JobDescription = () => {
           {/* //table */}
           <main className="grid flex-1 items-start ">
             <Card>
-              <CardHeader className="text-center">
-                <CardTitle>{job.title}</CardTitle>
-                <CardDescription>{job.company}</CardDescription>
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Total Applied Jobs
+                </CardTitle>
               </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Company Name</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Location
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Applied at
+                      </TableHead>
 
-              <div className="p-4">
-                <div>
-                  <div>
-                    <span className="font-medium">Location</span>
-                    <span className="mx-4">{job.location}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Date Created:</span>
-                    <span className="mx-4">{job.createdAt}</span>
-                  </div>
-                </div>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
 
-                <div className="mt-6">
-                  <p className="text-center font-medium">Job Description:</p>
-                  <div className="p-6 text-xs overflow-y-scroll h-[45vh]">
-                    {job.description}
-                  </div>
-                </div>
-              </div>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        Software Engineer
+                      </TableCell>
+                      <TableCell className="font-medium">Google</TableCell>
 
-              <CardFooter className="flex justify-between">
-                <Button
-                  onClick={() => navigate("/search-jobs")}
-                  variant="outline"
-                >
-                  Back
-                </Button>
-                <Button onClick={handleApply}>Apply</Button>
-              </CardFooter>
+                      <TableCell className="hidden md:table-cell">
+                        Bangalore
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        2023-07-12 10:42 AM
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge variant="outline">None</Badge>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
             </Card>
           </main>
         </main>
@@ -250,4 +241,4 @@ const JobDescription = () => {
   );
 };
 
-export default JobDescription;
+export default AppliedJobs;

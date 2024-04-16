@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { Schema } from 'mongoose';
+import mongoose from "mongoose";
+import { Schema } from "mongoose";
 
 const userSchema = new Schema(
   {
@@ -7,7 +7,7 @@ const userSchema = new Schema(
     firstName: String,
     middleName: String,
     lastName: String,
-    gender: Number, 
+    gender: Number,
     jobTrackerId: Schema.Types.ObjectId,
     jobAppliedId: Schema.Types.ObjectId,
     resume: String,
@@ -98,10 +98,22 @@ const jobTrackerSchema = new Schema(
   { timestamps: true }
 );
 
+const candidateSchema = new Schema({
+  candidateId: {
+    type: String,
+    required: true, // assuming candidate ID is required
+  },
+  status: {
+    type: String,
+    default: "none",
+  },
+});
+
 const jobSchema = new Schema(
   {
     id: Schema.Types.ObjectId,
     title: String,
+    company: String,
     requirements: [String],
     location: String,
     salaryRange: String,
@@ -109,36 +121,35 @@ const jobSchema = new Schema(
     createdBy: Schema.Types.ObjectId,
     seats: {
       type: Number,
-      default: 10
+      default: 10,
     },
     active: {
       type: Boolean,
-      default: true
+      default: true,
     },
     status: {
-      type: [String], 
-      default: ['applied']
+      type: String,
+      default: "none",
     },
-    selected: {
-      type: [Boolean], 
-      default: false
-    },
-    appliedDate: { type: [Date], default: Date.now },
-    candidates: [Schema.Types.ObjectId],
+    candidates: [candidateSchema],
     hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now },
-    interviews : [Schema.Types.ObjectId]
+    interviews: [Schema.Types.ObjectId],
   },
   { timestamps: true }
 );
 
+const fileSchema = new Schema({
+  pdf: String,
+});
 
+const User = mongoose.model("User", userSchema);
+const Resumes = mongoose.model("Resumes", resumesSchema);
+const JobTracker = mongoose.model("JobTracker", jobTrackerSchema);
+const ResumesATS = mongoose.model("ResumesATS", resumesAtsSchema);
+const Interviewer = mongoose.model("Interviewer", interviewerSchema);
+const Job = mongoose.model("Job", jobSchema);
 
-const User = mongoose.model('User', userSchema);
-const Resumes = mongoose.model('Resumes', resumesSchema);
-const JobTracker = mongoose.model('JobTracker', jobTrackerSchema);
-const ResumesATS = mongoose.model('ResumesATS', resumesAtsSchema);
-const Interviewer = mongoose.model('Interviewer', interviewerSchema);
-const Job = mongoose.model('Job', jobSchema);
+const ResumeFile = mongoose.model("ResumeFile", fileSchema);
 
-export { User, Resumes, JobTracker, ResumesATS, Interviewer, Job };
+export { User, Resumes, JobTracker, ResumesATS, Interviewer, Job, ResumeFile};

@@ -1,5 +1,6 @@
 // import Image from "next/image";
 // import Link from "next/link"
+import { Candidate } from "../../../../backend/models/candidateModel.js";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +30,13 @@ export function Login() {
 
       if (res && res.data.success) {
         toast.success(res.data && res.data.message);
+
         console.log(res.data.message);
+        console.log(res.data);
+
+        const candidate = res.data.candidate;
+        // console.log(candidate._id);
+        // console.log(res.data.candidate);
         // setAuth({
         //   ...auth,
         //   user: res.data.user,
@@ -37,7 +44,30 @@ export function Login() {
         // });
         // localStorage.setItem("auth", JSON.stringify(res.data));
 
-        navigate("/");
+        // const candidate = await Candidate.findOne({ email });
+        // console.log(candidate);
+        // navigate("/");
+        // if (candidate) {
+        //   navigate("/candidate-dashboard");
+        // } else {
+        //   navigate("/recruiter-dashboard");
+        // }
+
+        // console.log(role);
+        window.sessionStorage.setItem("userData", JSON.stringify(res.data));
+        // const userData = window.sessionStorage.getItem("userData");
+        // const userDataObject = JSON.parse(userData);
+        // console.log("Hit");
+        // console.log(userDataObject);
+
+        if (candidate) {
+          console.log(window.sessionStorage.getItem("user"));
+          navigate("/candidate-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
+
+        // navigate("/");
       } else {
         toast.error(res.data.message);
         console.log(res.data.message);

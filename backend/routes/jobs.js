@@ -1,15 +1,14 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-import { Job } from '../models/jobSchema.js';
-import { Candidate } from '../models/candidateModel.js';
-
+import { Job } from "../models/jobSchema.js";
+import { Candidate } from "../models/candidateModel.js";
 
 // POST - Create a new job
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const job = new Job({
       ...req.body,
-      createdBy: req.body.createdBy, 
+      createdBy: req.body.createdBy,
     });
     await job.save();
     res.status(201).send(job);
@@ -19,7 +18,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET - Retrieve all jobs
-router.get('/all', async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     const jobs = await Job.find({});
     res.send(jobs);
@@ -29,7 +28,7 @@ router.get('/all', async (req, res) => {
 });
 
 // GET - Retrieve a single job by ID
-router.get('/:jobId', async (req, res) => {
+router.get("/:jobId", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -42,7 +41,7 @@ router.get('/:jobId', async (req, res) => {
 });
 
 // GET - Retrieve all candidates for a job by ID
-router.get('/:jobId/candidates', async (req, res) => {
+router.get("/:jobId/candidates", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -56,7 +55,7 @@ router.get('/:jobId/candidates', async (req, res) => {
 });
 
 // GET - Retrieve all candidates for a job by ID for Interviews
-router.get('/:jobId/interviews', async (req, res) => {
+router.get("/:jobId/interviews", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -69,11 +68,13 @@ router.get('/:jobId/interviews', async (req, res) => {
   }
 });
 
-
 // PUT - Update a job by ID
-router.put('/:jobId', async (req, res) => {
+router.put("/:jobId", async (req, res) => {
   try {
-    const job = await Job.findByIdAndUpdate(req.params.jobId, req.body, { new: true, runValidators: true });
+    const job = await Job.findByIdAndUpdate(req.params.jobId, req.body, {
+      new: true,
+      runValidators: true,
+    });
     if (!job) {
       return res.status(404).send();
     }
@@ -83,35 +84,8 @@ router.put('/:jobId', async (req, res) => {
   }
 });
 
-// PUT - update selected array to a job by ID
-router.put('/toggle-selected/:jobId', async (req, res) => {
-  const { index } = req.body;
-  const { jobId } = req.params;
-
-  try {
-      // Fetch the current job to access the current state of 'selected'
-      const job = await Job.findById(jobId);
-      if (!job) {
-          return res.status(404).json({ success: false, message: "Job not found" });
-      }
-
-      // Toggle the boolean at the specified index
-      const currentValue = job.selected[index];
-      const newValue = !currentValue;
-
-      // Update the job with the new value
-      const result = await Job.updateOne(
-          { _id: jobId },
-          { $set: { [`selected.${index}`]: newValue } }
-      );
-      res.status(200).json({ success: true, data: result });
-  } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 // DELETE - Delete a job by ID
-router.delete('/:jobId', async (req, res) => {
+router.delete("/:jobId", async (req, res) => {
   try {
     const job = await Job.findByIdAndDelete(req.params.jobId);
     if (!job) {
@@ -123,73 +97,32 @@ router.delete('/:jobId', async (req, res) => {
   }
 });
 
-// Endpoint to add a user to the interviews array
-router.put('/:jobId/add-interviewee', async (req, res) => {
-  const { userId } = req.body; // User ID passed from the frontend
-  const { jobId } = req.params;
+//Apply for the job
 
+router.post("/apply", async (req, res) => {
+  const { jobId, userId } = req.body;
+
+  console.log(userId);
   try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId, 
-          { $addToSet: { interviews: userId } },
-          { new: true }
-      );
+    const job = await Job.findById(jobId);
 
-      if (!job) {
-          return res.status(404).send('Job not found');
-      }
+    if (!job) {
+      return res.status(404).json({ message: "Jobs not found" });
+    }
+    const candidates_var = {
+      candidateId: userId,
+    };
+    console.log(candidates_var)
 
-      res.json({ success: true, message: 'Interviewee added successfully', job });
+    job.candidates.push(candidates_var);
+    await job.save();
+
+    return res
+      .status(200)
+      .json({ message: "Successfully applied for the job" });
   } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-//to hire a candidate
-router.put('/:jobId/add-hired', async (req, res) => {
-  const { userId } = req.body; // User ID passed from the frontend
-  const { jobId } = req.params;
-
-  try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId, 
-        { 
-          $addToSet: { hired: userId },
-          $pull: { interviews: userId }  // Remove the userId from interviews
-        },
-        { new: true }
-      );
-
-      if (!job) {
-          return res.status(404).send('Job not found');
-      }
-
-      res.json({ success: true, message: 'Interviewee hired successfully', job });
-  } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-//to reject a candidate
-router.put('/:jobId/reject', async (req, res) => {
-  const { userId } = req.body; // User ID passed from the frontend
-  const { jobId } = req.params;
-
-  try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId, 
-        { 
-          $pull: { interviews: userId }  // Remove the userId from interviews
-        }
-      );
-
-      if (!job) {
-          return res.status(404).send('Job not found');
-      }
-
-      res.json({ success: true, message: 'rejected successfully', job });
-  } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+    console.error("Error Applying for the job", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
