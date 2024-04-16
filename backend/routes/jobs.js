@@ -123,4 +123,74 @@ router.delete('/:jobId', async (req, res) => {
   }
 });
 
+// Endpoint to add a user to the interviews array
+router.put('/:jobId/add-interviewee', async (req, res) => {
+  const { userId } = req.body; // User ID passed from the frontend
+  const { jobId } = req.params;
+
+  try {
+      // Use $addToSet to avoid adding duplicates
+      const job = await Job.findByIdAndUpdate(jobId, 
+          { $addToSet: { interviews: userId } },
+          { new: true }
+      );
+
+      if (!job) {
+          return res.status(404).send('Job not found');
+      }
+
+      res.json({ success: true, message: 'Interviewee added successfully', job });
+  } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+//to hire a candidate
+router.put('/:jobId/add-hired', async (req, res) => {
+  const { userId } = req.body; // User ID passed from the frontend
+  const { jobId } = req.params;
+
+  try {
+      // Use $addToSet to avoid adding duplicates
+      const job = await Job.findByIdAndUpdate(jobId, 
+        { 
+          $addToSet: { hired: userId },
+          $pull: { interviews: userId }  // Remove the userId from interviews
+        },
+        { new: true }
+      );
+
+      if (!job) {
+          return res.status(404).send('Job not found');
+      }
+
+      res.json({ success: true, message: 'Interviewee hired successfully', job });
+  } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+//to reject a candidate
+router.put('/:jobId/reject', async (req, res) => {
+  const { userId } = req.body; // User ID passed from the frontend
+  const { jobId } = req.params;
+
+  try {
+      // Use $addToSet to avoid adding duplicates
+      const job = await Job.findByIdAndUpdate(jobId, 
+        { 
+          $pull: { interviews: userId }  // Remove the userId from interviews
+        }
+      );
+
+      if (!job) {
+          return res.status(404).send('Job not found');
+      }
+
+      res.json({ success: true, message: 'rejected successfully', job });
+  } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 export default router;

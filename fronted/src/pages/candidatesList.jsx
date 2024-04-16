@@ -18,7 +18,8 @@ import {
   Users,
   MoreHorizontal,
   Eye,
-  Star
+  Star,
+  CalendarCheck
 
 
 
@@ -68,21 +69,35 @@ export function CandidatesList() {
 
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
   console.log(job);
-  
+
   const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
   console.log(jobCandidates);
 
   const handleSelected = async (index) => {
     try {
-        const response = await axios.put(`http://localhost:8080/jobs/toggle-selected/${jobId}`, {
-            index
-        });
-        
-        console.log('Toggle Success:', response.data);
+      const response = await axios.put(`http://localhost:8080/jobs/toggle-selected/${jobId}`, {
+        index
+      });
+
+      console.log('Toggle Success:', response.data);
     } catch (error) {
-        console.error('Error toggling selected:', error);
+      console.error('Error toggling selected:', error);
     }
-};
+  };
+
+  const handleInterview = async (index) => {
+    const userId = jobCandidates[index]._id;
+    console.log('Interview:', index, userId);
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
+        userId
+      });
+
+      console.log(response.data.message);
+    } catch (error) {
+      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+    }
+  };
 
 
 
@@ -177,7 +192,7 @@ export function CandidatesList() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          
+
           {/* //table */}
 
 
@@ -191,34 +206,34 @@ export function CandidatesList() {
                   <TabsTrigger value="top">Top Candidates</TabsTrigger>
                   <TabsTrigger value="selected">Selected Candidates</TabsTrigger>
                 </TabsList>
-                
+
                 <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-3.5 w-3.5" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                      All
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>ATS</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>College</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>CGPA</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Degree</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Location
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-              </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        <ListFilter className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                          Filter
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuCheckboxItem checked>
+                        All
+                      </DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>ATS</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>College</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>CGPA</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>Degree</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem>
+                        Location
+                      </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                </div>
 
               </div>
 
@@ -233,7 +248,7 @@ export function CandidatesList() {
                   </CardHeader>
                   <CardContent>
                     <Table>
-                    <TableHeader>
+                      <TableHeader>
                         <TableRow>
                           <TableHead>Candidates</TableHead>
                           <TableHead className="hidden sm:table-cell">
@@ -252,9 +267,9 @@ export function CandidatesList() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        
 
-                      {jobCandidates && jobCandidates.length > 0 ? (
+
+                        {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates.map((candidate, index) => (
                             <TableRow>
                               <TableCell>
@@ -275,11 +290,11 @@ export function CandidatesList() {
                                 {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Eye className="h-5 w-5" color='#313944'/>
+                                <Eye className="h-5 w-5" color='#313944' />
                               </TableCell>
                               <TableCell className="text-right">
-                              {job.selected && job.selected[index] ? (
-                                  <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)}/>
+                                {job.selected && job.selected[index] ? (
+                                  <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                 ) : (
                                   <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
                                 )}
@@ -293,7 +308,7 @@ export function CandidatesList() {
                             </TableCell>
                           </TableRow>
                         )}
-                        
+
 
                       </TableBody>
                     </Table>
@@ -334,8 +349,8 @@ export function CandidatesList() {
 
                         {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates
-                            .map((candidate, index) => ({ candidate, index })) 
-                            .filter(({ _, index }) => job.selected[index]) 
+                            .map((candidate, index) => ({ candidate, index }))
+                            .filter(({ _, index }) => job.selected[index])
                             .map(({ candidate, index }) => (
                               <TableRow>
                                 <TableCell>
@@ -365,6 +380,9 @@ export function CandidatesList() {
                                     <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
                                   )}
                                 </TableCell>
+                                <TableCell className="text-right">
+                                  <CalendarCheck className="h-5 w-5" color="#313944" onClick={() => handleInterview(index)} />
+                                </TableCell>
                               </TableRow>
 
                             ))
@@ -381,7 +399,7 @@ export function CandidatesList() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
             </Tabs>
           </div>
           <div>
