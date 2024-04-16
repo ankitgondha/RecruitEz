@@ -80,40 +80,37 @@ export function CandidateDashboard() {
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              <div
-                href="#"
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
-              >
+              <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary">
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/search-jobs")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <ShoppingCart className="h-4 w-4" />
-                Jobs
+                <Search className="h-4 w-4" />
+                Search Jobs
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/jobs-applied")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Package className="h-4 w-4" />
-                Interview
+                Jobs Applied
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/scheduled-interviews")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                Candidates
+                Interview Scheduled
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/offered-jobs")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
-                Analytics
+                Offers
               </div>
             </nav>
           </div>
@@ -202,10 +199,20 @@ export function CandidateDashboard() {
           <main className="grid flex-1 items-start ">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Applied Jobs</CardTitle>
-                <CardDescription>
-                  Here are all the jobs you have applied recently
-                </CardDescription>
+                <div className="flex justify-between">
+                  <div>
+                    <CardTitle>Recent Applied Jobs</CardTitle>
+                    <CardDescription>
+                      Here are all the jobs you have applied recently
+                    </CardDescription>
+                  </div>
+
+                  <div>
+                    <Button onClick={() => navigate("/jobs-applied")}>
+                      View All
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>

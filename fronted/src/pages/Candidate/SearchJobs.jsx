@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 // import useDataFetch from ".../hooks/useDataFetch.jsx";
 import useDataFetch from "@/hooks/useDataFetch";
+
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import {
@@ -68,25 +69,50 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-
 const SearchJobs = () => {
   const navigate = useNavigate();
 
   const [open, setOpen] = React.useState(false);
-  //   const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [role, setRole] = useState("");
+  const [company, setCompany] = useState("");
+  const jobs = useDataFetch("http://localhost:8080/jobs/all");
+  const [filteredJobs, setFilteredJobs] = useState({});
+
+  useEffect(() => {
+    setFilteredJobs(jobs); // Initialize filteredJobs with fetched jobs
+  }, [jobs]);
+
+  useEffect(() => {
+    filterJobs();
+  }, [role, company, jobs]);
+
+  const filterJobs = () => {
+    let filtered = jobs;
+
+    if (role) {
+      filtered = filtered.filter((job) =>
+        job.title.toLowerCase().includes(role.toLowerCase())
+      );
+    }
+
+    if (company) {
+      filtered = filtered.filter((job) =>
+        job.company.toLowerCase().includes(company.toLowerCase())
+      );
+    }
+    setFilteredJobs(filtered);
+  };
+
+  const handleApplyFilter = () => {
+    setOpen(false);
+  };
+
+  const handleNavigation = (id) => {
+    navigate("/job-description", { state: { jobId: id } });
+  };
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+    <div className="grid min-h-screen w-screen md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -102,39 +128,36 @@ const SearchJobs = () => {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <div
-                href="#"
+                onClick={() => navigate("/candidate-dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
-              <div
-                href="#"
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Jobs
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
+                <Search className="h-4 w-4" />
+                Search Jobs
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/jobs-applied")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Package className="h-4 w-4" />
-                Interview
+                Jobs Applied
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/scheduled-interviews")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                Candidates
+                Interview Scheduled
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/offered-jobs")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
-                Analytics
+                Offers
               </div>
             </nav>
           </div>
@@ -202,6 +225,8 @@ const SearchJobs = () => {
                             type="text"
                             required
                             placeholder="Search"
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
                           />
                         </div>
 
@@ -214,16 +239,12 @@ const SearchJobs = () => {
                             type="text"
                             required
                             placeholder="Search"
+                            value={company}
+                            onChange={(e) => setCompany(e.target.value)}
                           />
                         </div>
 
-                        <Button
-                          onClick={() => {
-                            setOpen(false);
-                          }}
-                        >
-                          Apply
-                        </Button>
+                        <Button onClick={handleApplyFilter}>Apply</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -246,28 +267,44 @@ const SearchJobs = () => {
                   </TableHeader>
 
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Software Engineer
-                      </TableCell>
-                      <TableCell className="font-medium">Google</TableCell>
+                    {filteredJobs && filteredJobs.length > 0 ? (
+                      filteredJobs.map((job) => {
+                        return (
+                          <TableRow>
+                            <TableCell className="font-medium">
+                              {job.title}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {job.company}
+                            </TableCell>
 
-                      <TableCell className="hidden md:table-cell">
-                        Bangalore
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        2023-07-12 10:42 AM
-                      </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.location}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.createdAt}
+                            </TableCell>
 
-                      <TableCell className="hidden md:table-cell text-sky-400">
-                        <p
-                          className="cursor-pointer"
-                          onClick={() => navigate("/job-description")}
-                        >
-                          See More...
-                        </p>
-                      </TableCell>
-                    </TableRow>
+                            <TableCell className="hidden md:table-cell">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleNavigation(job._id)}
+                              >
+                                {/* View Details */}
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan="number_of_columns">
+                          No Jobs found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

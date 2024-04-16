@@ -17,6 +17,7 @@ const candidateSchema = new mongoose.Schema(
     gender: {
       type: Number,
     },
+
     answer: {
       type: String,
       required: true,

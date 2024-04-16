@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
-
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// import { pdfjs } from "react-pdf";
 import {
   Select,
   SelectContent,
@@ -13,34 +14,54 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+
+
 const CandidateProfile = () => {
+  const [file, setFile] = useState("");
+  const [pdfFile, setPdfFile] = useState(null);
+
+
+
+  const getPdf = async () => {
+    const result = await axios.get("http://localhost:8080/resumes/get-files");
+    console.log(result.data.data);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // try {
-    //   const res = await axios.post(
-    //     `${process.env.REACT_APP_API}/api/v1/auth/login`,
-    //     { email, password }
-    //   );
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log(file);
 
-    //   if (res && res.data.success) {
-    //     toast.success(res.data && res.data.message);
-    //     // console.log(res.data.message);
-    //     setAuth({
-    //       ...auth,
-    //       user: res.data.user,
-    //       token: res.data.token,
-    //     });
-    //     localStorage.setItem("auth", JSON.stringify(res.data));
-
-    //     navigate(location.state || "/");
-    //   } else {
-    //     toast.error(res.data.message);
-    //   }
-    // } catch (error) {
-    //   // console.log(error);
-    //   toast.error("Something went wrong");
-    // }
+    const result = await axios.post(
+      "http://localhost:8080/resumes/upload",
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
+    console.log(result);
+    if (result.data.status == "ok") {
+      alert("Uploaded Successfully!!!");
+      getPdf();
+      
+    }
   };
+
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState("0");
+  const [resume, setResume] = useState("");
+
+  // console.log(resume);
+
+  const navigate = useNavigate();
+
+  const handleGender = (event) => {
+    const value = parseInt(event.target.value); // Convert value to integer
+    setGender(value); // Update role state based on selected value
+  };
+
+  console.log(name);
 
   return (
     <div className="w-full h-screen lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-screen">
@@ -51,18 +72,6 @@ const CandidateProfile = () => {
           </div>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                // type="email"
-                value={"email"}
-                // registered email
-                placeholder="m@example.com"
-                disable
-              />
-            </div>
-
-            <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="name">Name</Label>
               </div>
@@ -71,10 +80,64 @@ const CandidateProfile = () => {
                 type="text"
                 required
                 placeholder="Enter Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
 
-            <div>
+            <div className="flex my-2">
+              <div className="">
+                <label htmlFor="selectGender" className="block mb-2">
+                  Select Gender
+                </label>
+
+                {/* <div className="flex flex-row"> */}
+                <div id="selectGender" className="flex space-x-4">
+                  <input
+                    type="radio"
+                    id="male"
+                    name="gender"
+                    value="0"
+                    checked={gender === 0}
+                    onChange={handleGender}
+                    className="form-radio text-blue-500"
+                  />
+                  <label htmlFor="male" className="cursor-pointer">
+                    Male
+                  </label>
+
+                  <input
+                    type="radio"
+                    id="female"
+                    name="gender"
+                    value="1"
+                    checked={gender === 1}
+                    onChange={handleGender}
+                    className="form-radio text-blue-500"
+                  />
+                  <label htmlFor="female" className="cursor-pointer">
+                    Female
+                  </label>
+
+                  <input
+                    type="radio"
+                    id="notTobeDisclosed"
+                    name="gender"
+                    value="2"
+                    checked={gender === 2}
+                    onChange={handleGender}
+                    className="form-radio text-blue-500"
+                  />
+                  <label htmlFor="notTobeDisclosed" className="cursor-pointer">
+                    Not to be Disclosed
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* </div> */}
+
+            {/* <div>
               <Select>
                 <div className="flex items-center mb-3">
                   <Label htmlFor="gender">Gender</Label>
@@ -91,11 +154,22 @@ const CandidateProfile = () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="resume">Upload Resume</Label>
-              <Input id="resume" type="file" />
+              <Input
+                id="resume"
+                type="file"
+                accept=".pdf"
+                encType="multipart/form-data"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  console.log(file)
+                  setResume(file);
+                  // console.log(resume);
+                }}
+              />
             </div>
 
             <div className="grid w-full max-w-sm items-center gap-1.5">
