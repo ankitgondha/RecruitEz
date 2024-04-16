@@ -1,4 +1,4 @@
-import { Dashboard } from "./pages/Dashboard";
+import { Dashboard } from "./pages/dashboard";
 import { JobDashboard } from "./pages/jobDashboard";
 import { Navigate } from "react-router-dom";
 import { CandidatesList } from "./pages/candidatesList";

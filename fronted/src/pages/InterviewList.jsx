@@ -57,7 +57,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
-
+import axios from 'axios';
 
 export function InterviewList() {
   const location = useLocation();
@@ -66,12 +66,38 @@ export function InterviewList() {
 
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
   console.log(job);
-  
+
   const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
   console.log(jobCandidates);
-  
+
   const jobInterviews = useDataFetch(`http://localhost:8080/jobs/${jobId}/interviews`);
   console.log(jobInterviews);
+
+  const handleHired = async (userId, index) => {
+    console.log(userId, index);
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-hired`, {
+        userId
+      });
+
+      console.log(response.data.message);
+    } catch (error) {
+      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+    }
+  }
+
+  const handleReject = async (userId, index) => {
+    console.log(userId, index);
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/reject`, {
+        userId
+      });
+
+      console.log(response.data.message);
+    } catch (error) {
+      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+    }
+  }
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -164,7 +190,7 @@ export function InterviewList() {
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          
+
           {/* //table */}
 
 
@@ -194,34 +220,40 @@ export function InterviewList() {
                           <TableHead className="hidden md:table-cell">
                             Date
                           </TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        
+
 
                         {jobInterviews && jobInterviews.length > 0 ? (
-                          jobInterviews.map((candidate) => (
+                          jobInterviews.map((candidate, index) => (
                             <TableRow>
-                          <TableCell>
-                            <div className="font-medium">{candidate.name}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                            {candidate.email}
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                          {candidate.gender === 1 ? "Male" : "Female"}
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant="outline">
-                              Pending
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            2023-06-24
-                          </TableCell>
-                          <TableCell className="text-right">$150.00</TableCell>
-                        </TableRow>
+                              <TableCell>
+                                <div className="font-medium">{candidate.name}</div>
+                                <div className="hidden text-sm text-muted-foreground md:inline">
+                                  {candidate.email}
+                                </div>
+                              </TableCell>
+                              <TableCell className="hidden sm:table-cell">
+                                {candidate.gender === 1 ? "Male" : "Female"}
+                              </TableCell>
+                              <TableCell className="hidden sm:table-cell">
+                                <Badge className="text-xs" variant="outline">
+                                  Pending
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                              </TableCell>
+                              <TableCell>
+                                <Button variant="" size="sm" onClick={() => { handleHired(candidate._id, index) }}>
+                                  Hire
+                                </Button>
+                                <Button variant="outline" className="ml-5" size="sm" onClick={() => { handleReject(candidate._id, index) }}>
+                                  Reject
+                                </Button>
+                              </TableCell>
+                            </TableRow>
                           ))
                         ) : (
                           <TableRow>
@@ -230,13 +262,13 @@ export function InterviewList() {
                             </TableCell>
                           </TableRow>
                         )}
-                        
+
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
             </Tabs>
           </div>
 

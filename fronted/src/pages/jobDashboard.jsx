@@ -18,6 +18,9 @@ import {
   ShoppingCart,
   Users,
   MoreHorizontal,
+  Eye,
+  Star,
+  CalendarCheck,
 
 
 
@@ -59,6 +62,40 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useState } from 'react';
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import React from "react"
+// import TimePicker from 'react-time-picker';
+import dayjs from 'dayjs';
+import 'react-time-picker/dist/TimePicker.css';
+import 'react-clock/dist/Clock.css';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+
+
+
+
 
 export function JobDashboard() {
   const location = useLocation();
@@ -80,6 +117,43 @@ export function JobDashboard() {
   const handleJobClick2 = (id) => {
     navigate('/interviewlist', { state: { jobId: id } });
   }
+
+  const handleSelected = async (index) => {
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/toggle-selected/${jobId}`, {
+        index
+      });
+
+      console.log('Toggle Success:', response.data);
+    } catch (error) {
+      console.error('Error toggling selected:', error);
+    }
+  };
+
+  const handleInterview = async (index) => {
+    const userId = jobCandidates[index]._id;
+    console.log('Interview:', index, userId);
+    const formattedDateTime = `${format(dateTime.date, 'dd/MM/yyyy')} ${dateTime.time.$H}:${dateTime.time.$m}`;
+    console.log(formattedDateTime);
+
+    try {
+      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
+        userId
+      });
+
+      console.log(response.data.message);
+    } catch (error) {
+      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+    }
+  };
+
+  const [open, setOpen] = useState(false);
+  const [dateTime, setDateTime] = React.useState({
+    date: new Date(),
+    time: '10:00'
+  });
+
+
 
 
   return (
@@ -184,9 +258,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.candidates?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +180.1% from last month
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -196,9 +267,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.hired?.length ?? 0}</div>
-                <p className="text-xs text-muted-foreground">
-                  +19% from last month
-                </p>
               </CardContent>
             </Card>
             <Card>
@@ -210,9 +278,6 @@ export function JobDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{job?.interviews?.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  +201% since last month
-                </p>
               </CardContent>
 
             </Card>
@@ -225,12 +290,12 @@ export function JobDashboard() {
 
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
 
-            <Tabs defaultValue="week">
+            <Tabs defaultValue="all">
               <div className="flex items-center">
                 <TabsList>
-                  <TabsTrigger value="week">All Candidates</TabsTrigger>
-                  <TabsTrigger value="month">Top Candidates</TabsTrigger>
-                  <TabsTrigger value="year">Selected Candidates</TabsTrigger>
+                  <TabsTrigger value="all">All Candidates</TabsTrigger>
+                  <TabsTrigger value="top">Top Candidates</TabsTrigger>
+                  <TabsTrigger value="selected">Selected Candidates</TabsTrigger>
                 </TabsList>
 
                 <div className="ml-auto flex items-center gap-2">
@@ -244,10 +309,10 @@ export function JobDashboard() {
                 </div>
 
               </div>
-              <TabsContent value="week">
+              <TabsContent value="all">
                 <Card>
                   <CardHeader className="px-7">
-                    <CardTitle>Candidates</CardTitle>
+                    <CardTitle>All Candidates</CardTitle>
                     <CardDescription>
                       Recently applied for this role.
                     </CardDescription>
@@ -256,7 +321,7 @@ export function JobDashboard() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Customer</TableHead>
+                          <TableHead>Candidates</TableHead>
                           <TableHead className="hidden sm:table-cell">
                             Gender
                           </TableHead>
@@ -266,14 +331,17 @@ export function JobDashboard() {
                           <TableHead className="hidden md:table-cell">
                             Date
                           </TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Resume
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">Select</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
 
 
                         {jobCandidates && jobCandidates.length > 0 ? (
-                          jobCandidates.map((candidate) => (
+                          jobCandidates.map((candidate, index) => (
                             <TableRow>
                               <TableCell>
                                 <div className="font-medium">{candidate.name}</div>
@@ -286,15 +354,169 @@ export function JobDashboard() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  Pending
+                                  {job.status[index] ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                2023-06-24
+                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
-                              <TableCell className="text-right">$150.00</TableCell>
+                              <TableCell className="text-right">
+                                <Eye className="h-5 w-5" color='#313944' />
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {job.selected && job.selected[index] ? (
+                                  <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                ) : (
+                                  <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
+                                )}
+                              </TableCell>
                             </TableRow>
                           ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan="number_of_columns">
+                              No candidates found.
+                            </TableCell>
+                          </TableRow>
+                        )}
+
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+
+
+
+
+              <TabsContent value="selected">
+                <Card>
+                  <CardHeader className="px-7">
+                    <CardTitle>Selected Candidates</CardTitle>
+                    <CardDescription>
+                      Candidates selected for this role.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Candidates</TableHead>
+                          <TableHead className="hidden sm:table-cell">
+                            Gender
+                          </TableHead>
+                          <TableHead className="hidden sm:table-cell">
+                            Status
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Date
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            Resume
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">Select</TableHead>
+                          <TableHead className="text-left">Schedule Interview</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+
+
+                        {jobCandidates && jobCandidates.length > 0 ? (
+                          jobCandidates
+                            .map((candidate, index) => ({ candidate, index }))
+                            .filter(({ _, index }) => job.selected[index])
+                            .map(({ candidate, index }) => (
+                              <TableRow>
+                                <TableCell>
+                                  <div className="font-medium">{candidate.name}</div>
+                                  <div className="hidden text-sm text-muted-foreground md:inline">
+                                    {candidate.email}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                  {candidate.gender === 1 ? "Male" : "Female"}
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">
+                                  <Badge className="text-xs" variant="outline">
+                                    {job.status[index] ?? "Pending"}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="hidden md:table-cell">
+                                  {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Eye className="h-5 w-5" color='#313944' />
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {job.selected && job.selected[index] ? (
+                                    <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                  ) : (
+                                    <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <CalendarCheck className="h-5 w-5" color="#313944" />
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px]">
+                                      <DialogHeader>
+                                        <DialogTitle>Schedule Interview</DialogTitle>
+                                        <DialogDescription>
+                                          Select Date and Time to Schedule an interview with the candidate.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="grid gap-4 py-4">
+                                        <div className="flex items-center  gap-4">
+                                          <Label htmlFor="name" className="text-right">
+                                            Date
+                                          </Label>
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                  "w-[244px] h-[56px] justify-start text-left font-normal",
+                                                  !dateTime.date && "text-muted-foreground"
+                                                )}
+                                              >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {dateTime.date ? format(dateTime.date, "PPP") : <span>Pick a date</span>}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                              <Calendar
+                                                mode="single"
+                                                selected={dateTime.date}
+                                                onSelect={(newDate) => setDateTime({ ...dateTime, date: newDate })}
+                                                initialFocus
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                        </div>
+                                        <div className="flex items-center  gap-4">
+                                          <Label htmlFor="time" className="text-right">
+                                            Time
+                                          </Label>
+                                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DemoContainer components={['TimePicker']}>
+                                              <TimePicker label="Select a time"
+                                                onChange={(newValue) => setDateTime({ ...dateTime, time: newValue })} />
+                                            </DemoContainer>
+                                          </LocalizationProvider>
+                                        </div>
+                                      </div>
+                                      <DialogFooter>
+                                        <Button type="submit" onClick={() => handleInterview(index)}>Send Email</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+
+                                </TableCell>
+                              </TableRow>
+
+                            ))
                         ) : (
                           <TableRow>
                             <TableCell colSpan="number_of_columns">
