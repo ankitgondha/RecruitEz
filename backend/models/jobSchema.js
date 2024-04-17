@@ -105,9 +105,24 @@ const candidateSchema = new Schema({
   },
   status: {
     type: String,
-    default: "none",
+    default: "applied",
   },
+  appliedDate:{
+    type: Date,
+    default: Date.now,
+  }
 });
+
+const interviewSchema= new Schema({
+  candidateId: {
+    type: String,
+    required: true, // assuming candidate ID is required
+  },
+  interviewDate: {
+    type: String,
+    required: true,
+  },
+})
 
 const jobSchema = new Schema(
   {
@@ -131,10 +146,15 @@ const jobSchema = new Schema(
       type: String,
       default: "none",
     },
+    selected: {
+      type: [Boolean], 
+      default: false
+    },
     candidates: [candidateSchema],
     hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now },
-    interviews: [Schema.Types.ObjectId],
+    interviews: [interviewSchema],
+    // interviews: [Schema.Types.ObjectId],
   },
   { timestamps: true }
 );

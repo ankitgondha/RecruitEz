@@ -63,7 +63,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -92,6 +92,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { set } from 'mongoose';
 
 
 
@@ -106,7 +107,7 @@ export function JobDashboard() {
   console.log(job);
 
   const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
-  console.log(jobCandidates);
+  console.log("Candidates found:", jobCandidates);
 
   const navigate = useNavigate();
 
@@ -117,6 +118,7 @@ export function JobDashboard() {
   const handleJobClick2 = (id) => {
     navigate('/interviewlist', { state: { jobId: id } });
   }
+
 
   const handleSelected = async (index) => {
     try {
@@ -130,6 +132,9 @@ export function JobDashboard() {
     }
   };
 
+
+
+
   const handleInterview = async (index) => {
     const userId = jobCandidates[index]._id;
     console.log('Interview:', index, userId);
@@ -138,7 +143,8 @@ export function JobDashboard() {
 
     try {
       const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
-        userId
+        userId : userId,
+        interviewDate: formattedDateTime
       });
 
       console.log(response.data.message);
@@ -147,11 +153,14 @@ export function JobDashboard() {
     }
   };
 
+
+
   const [open, setOpen] = useState(false);
   const [dateTime, setDateTime] = React.useState({
     date: new Date(),
     time: '10:00'
   });
+
 
 
 
@@ -354,17 +363,17 @@ export function JobDashboard() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  {job.status[index] ?? "Pending"}
+                                  {job.candidates[index].status ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                {job.candidates[index].appliedDate?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
                               <TableCell className="text-right">
                                 <Eye className="h-5 w-5" color='#313944' />
                               </TableCell>
                               <TableCell className="text-right">
-                                {job.selected && job.selected[index] ? (
+                                {job.candidates[index].status === 'selected' ?? "selected" ? (
                                   <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                 ) : (
                                   <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
@@ -425,7 +434,7 @@ export function JobDashboard() {
                         {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates
                             .map((candidate, index) => ({ candidate, index }))
-                            .filter(({ _, index }) => job.selected[index])
+                            .filter(({ candidate, index }) => job.candidates[index].status === "selected")
                             .map(({ candidate, index }) => (
                               <TableRow>
                                 <TableCell>
@@ -439,17 +448,17 @@ export function JobDashboard() {
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">
                                   <Badge className="text-xs" variant="outline">
-                                    {job.status[index] ?? "Pending"}
+                                    {job.candidates[index].status ?? "Pending"}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell">
-                                  {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                  {job.candidates[index].appliedDate?.slice(0, 10) ?? "Not Available"}
                                 </TableCell>
                                 <TableCell className="text-right">
                                   <Eye className="h-5 w-5" color='#313944' />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {job.selected && job.selected[index] ? (
+                                  {job.candidates[index].status === 'selected' ? (
                                     <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                   ) : (
                                     <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />

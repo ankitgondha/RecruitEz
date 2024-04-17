@@ -76,8 +76,8 @@ export function InterviewList() {
   const handleHired = async (userId, index) => {
     console.log(userId, index);
     try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-hired`, {
-        userId
+      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/hire-candidate`, {
+        candidateId : userId
       });
 
       console.log(response.data.message);
@@ -218,7 +218,7 @@ export function InterviewList() {
                             Status
                           </TableHead>
                           <TableHead className="hidden md:table-cell">
-                            Date
+                            Interview Date
                           </TableHead>
                         </TableRow>
                       </TableHeader>
@@ -239,11 +239,11 @@ export function InterviewList() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  Pending
+                                {job.candidates[index].status}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                {candidate.interviewDate ?? "Not Available"}
                               </TableCell>
                               <TableCell>
                                 <Button variant="" size="sm" onClick={() => { handleHired(candidate._id, index) }}>

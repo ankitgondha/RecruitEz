@@ -46,28 +46,52 @@ router.get('/:jobId/candidates', async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
-      return res.status(404).send();
+      return res.status(404).send('Job not found');
     }
-    const candidates = await Candidate.find({ _id: { $in: job.candidates } });
+
+    // Extract candidateIds from the job's candidates array
+    const candidateIds = job.candidates.map(c => c.candidateId);
+
+    // Find candidates with those IDs
+    const candidates = await Candidate.find({ '_id': { $in: candidateIds } });
+    
     res.send(candidates);
   } catch (error) {
     res.status(500).send(error);
   }
 });
 
+
+// GET - Retrieve all candidates for a job by ID for Interviews
 // GET - Retrieve all candidates for a job by ID for Interviews
 router.get('/:jobId/interviews', async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
-      return res.status(404).send();
+      return res.status(404).send('Job not found');
     }
-    const candidates = await Candidate.find({ _id: { $in: job.interviews } });
-    res.send(candidates);
+
+    // Extract candidateIds from the interviews array
+    const candidateIds = job.interviews.map(interview => interview.candidateId);
+
+    // Find candidates whose IDs are in the candidateIds array
+    const candidates = await Candidate.find({ _id: { $in: candidateIds } });
+
+    // Optionally, include interview details if needed
+    const candidatesWithInterviewDetails = candidates.map(candidate => {
+      const interviewDetails = job.interviews.find(interview => interview.candidateId === candidate._id.toString());
+      return {
+        ...candidate.toObject(),  // Converting Mongoose document to plain object
+        interviewDate: interviewDetails.interviewDate
+      };
+    });
+
+    res.json(candidatesWithInterviewDetails);
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // PUT - Update a job by ID
@@ -85,30 +109,32 @@ router.put('/:jobId', async (req, res) => {
 
 // PUT - update selected array to a job by ID
 router.put('/toggle-selected/:jobId', async (req, res) => {
-  const { index } = req.body;
+  const { index } = req.body;  // Index of the candidate in the candidates array
   const { jobId } = req.params;
 
   try {
-      // Fetch the current job to access the current state of 'selected'
+      // Fetch the current job to access the candidates array
       const job = await Job.findById(jobId);
       if (!job) {
           return res.status(404).json({ success: false, message: "Job not found" });
       }
 
-      // Toggle the boolean at the specified index
-      const currentValue = job.selected[index];
-      const newValue = !currentValue;
+      // Check the current status and toggle it accordingly
+      const currentStatus = job.candidates[index].status;
+      const newStatus = currentStatus === 'selected' ? 'applied' : 'selected';
 
-      // Update the job with the new value
+      // Update the status of the specific candidate
       const result = await Job.updateOne(
-          { _id: jobId },
-          { $set: { [`selected.${index}`]: newValue } }
+          { _id: jobId, [`candidates.${index}.candidateId`]: job.candidates[index].candidateId },
+          { $set: { [`candidates.$[].status`]: newStatus } }
       );
+
       res.status(200).json({ success: true, data: result });
   } catch (error) {
       res.status(500).json({ success: false, error: error.message });
   }
 });
+
 
 // DELETE - Delete a job by ID
 router.delete('/:jobId', async (req, res) => {
@@ -125,48 +151,78 @@ router.delete('/:jobId', async (req, res) => {
 
 // Endpoint to add a user to the interviews array
 router.put('/:jobId/add-interviewee', async (req, res) => {
-  const { userId } = req.body; // User ID passed from the frontend
+  const { userId, interviewDate } = req.body;  // Assume these are correctly provided by the frontend
   const { jobId } = req.params;
 
   try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId, 
-          { $addToSet: { interviews: userId } },
-          { new: true }
-      );
+    // First, try to update an existing entry
+    const job = await Job.findOneAndUpdate(
+      { _id: jobId, 'interviews.candidateId': userId },
+      {
+        $set: { 'interviews.$.interviewDate': interviewDate }, // Update the interview date as a string
+      },
+      { new: true }
+    );
 
-      if (!job) {
-          return res.status(404).send('Job not found');
-      }
-
-      res.json({ success: true, message: 'Interviewee added successfully', job });
-  } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-//to hire a candidate
-router.put('/:jobId/add-hired', async (req, res) => {
-  const { userId } = req.body; // User ID passed from the frontend
-  const { jobId } = req.params;
-
-  try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId, 
-        { 
-          $addToSet: { hired: userId },
-          $pull: { interviews: userId }  // Remove the userId from interviews
+    // If no interview was found to update, add a new one
+    if (!job || job.interviews.every(interview => interview.candidateId !== userId)) {
+      const updatedJob = await Job.findByIdAndUpdate(
+        jobId,
+        {
+          $push: { interviews: { candidateId: userId, interviewDate: interviewDate } } // Add as a new entry
         },
         { new: true }
       );
 
-      if (!job) {
-          return res.status(404).send('Job not found');
+      if (!updatedJob) {
+        return res.status(404).send('Job not found');
       }
 
-      res.json({ success: true, message: 'Interviewee hired successfully', job });
+      return res.json({ success: true, message: 'New interviewee added successfully', job: updatedJob });
+    }
+
+    if (!job) {
+      return res.status(404).send('Job not found');
+    }
+
+    res.json({ success: true, message: 'Interviewee updated successfully', job });
   } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+// Route to set a candidate's status to 'hired' and remove them from interviews
+router.put('/:jobId/hire-candidate', async (req, res) => {
+  const { jobId } = req.params;
+  const { candidateId } = req.body;
+
+  try {
+    // Find the job with the given jobId
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).send({ error: 'Job not found' });
+    }
+
+    // Remove the candidate from the interviews array
+    job.interviews = job.interviews.filter(interview => interview.candidateId.toString() !== candidateId);
+
+    // Update the status of the candidate to 'hired'
+    const candidateIndex = job.candidates.findIndex(cand => cand._id.toString() === candidateId);
+    if (candidateIndex !== -1) {
+      job.candidates[candidateIndex].status = 'hired';
+    }
+
+    // Optionally, add the candidate to the hired array if you maintain a separate list for that
+    job.hired.push(candidateId);
+
+    // Save the job document
+    await job.save();
+
+    res.send({ message: 'Candidate has been hired and removed from interviews.' });
+  } catch (error) {
+    console.error('Error hiring candidate:', error);
+    res.status(500).send({ error: 'Failed to update job for hiring candidate' });
   }
 });
 
