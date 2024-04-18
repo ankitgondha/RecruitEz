@@ -103,6 +103,11 @@ const SearchJobs = () => {
     setFilteredJobs(filtered);
   };
 
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
+  };
+
   const handleApplyFilter = () => {
     setOpen(false);
   };
@@ -126,7 +131,7 @@ const SearchJobs = () => {
             </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
@@ -162,7 +167,7 @@ const SearchJobs = () => {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -192,7 +197,7 @@ const SearchJobs = () => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

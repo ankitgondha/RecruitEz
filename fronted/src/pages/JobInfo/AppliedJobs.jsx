@@ -57,47 +57,49 @@ const AppliedJobs = () => {
   const jobs = useDataFetch("http://localhost:8080/jobs/all");
   console.log(jobs);
 
-  const [appliedJob, setAppliedJobs] = useState("");
-  let jobsApp = [];
-
-  // jobs.forEach((job) => {
-  //   job.candidates.forEach((cand) => {
-  //     if(cand===userID)
-  //     {
-  //       jobsApp.append()
-  //     }
-  //   });
-  // });
-  const [user, setUser] = useState({});
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    const userData = window.sessionStorage.getItem("userData");
-    const userDataObject = JSON.parse(userData);
+    //  console.log("came in useEffect");
 
-    if (userDataObject) {
-      setUser(userDataObject);
-      const candidate = userDataObject.candidate;
-      if (candidate) {
-        setUserId(candidate._id);
-      }
-    }
+    const candidateId = window.sessionStorage.getItem("userId");
+    setUserId(candidateId);
+
+    console.log(userId);
+    // console.log("Hit")
   }, []);
 
-  for (let i = 0; i < jobs.length; i++) {
-    const candidates = jobs[i].candidates;
+  const matchedJobs = [];
 
-    for (let j = 0; j < candidates.length; j++) {
-      console.log(candidates[j]);
-      console.log(userId);
-      if (candidates[j] === userId) {
-        console.log("hut")
-        jobsApp.push(j);
+  jobs.forEach((job) => {
+    const candidateArray = job.candidates;
+
+    for (let i = 0; i < candidateArray.length; i++) {
+      if (
+        candidateArray[i].candidateId === userId &&
+        candidateArray[i].status === "Applied"
+      ) {
+        matchedJobs.push({
+          jobId: job._id,
+          role: job.title,
+          companyName: job.company,
+          location: job.location,
+          appliedDate: candidateArray[i].applyDate,
+          status: candidateArray[i].status,
+        });
+
+        break;
       }
     }
-  }
+  });
 
-  console.log(jobsApp);
+  matchedJobs.sort((a, b) => new Date(b.appliedDate) - new Date(a.appliedDate));
+  console.log(matchedJobs);
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
+  };
 
   const navigate = useNavigate();
 
@@ -116,7 +118,7 @@ const AppliedJobs = () => {
             </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
@@ -152,7 +154,7 @@ const AppliedJobs = () => {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -182,7 +184,7 @@ const AppliedJobs = () => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -213,23 +215,37 @@ const AppliedJobs = () => {
                   </TableHeader>
 
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Software Engineer
-                      </TableCell>
-                      <TableCell className="font-medium">Google</TableCell>
+                    {matchedJobs && matchedJobs.length > 0 ? (
+                      matchedJobs.map((job) => {
+                        return (
+                          <TableRow>
+                            <TableCell className="font-medium">
+                              {job.role}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {job.companyName}
+                            </TableCell>
 
-                      <TableCell className="hidden md:table-cell">
-                        Bangalore
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        2023-07-12 10:42 AM
-                      </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.location}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.appliedDate}
+                            </TableCell>
 
-                      <TableCell>
-                        <Badge variant="outline">None</Badge>
-                      </TableCell>
-                    </TableRow>
+                            <TableCell>
+                              <Badge variant="outline">{job.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan="number_of_columns">
+                          No Jobs found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

@@ -14,43 +14,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
-
 const CandidateProfile = () => {
-  const [file, setFile] = useState("");
-  const [pdfFile, setPdfFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [customFileName, setCustomFileName] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
 
-
-  const getPdf = async () => {
-    const result = await axios.get("http://localhost:8080/resumes/get-files");
-    console.log(result.data.data);
+  const handleCustomFileNameChange = (e) => {
+    setCustomFileName(e.target.value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append("file", file);
-    console.log(file);
 
-    const result = await axios.post(
-      "http://localhost:8080/resumes/upload",
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    console.log(result);
-    if (result.data.status == "ok") {
-      alert("Uploaded Successfully!!!");
-      getPdf();
-      
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("customFileName", "1234567");
+    // formData.append("userId", window.sessionStorage.getItem("userId"));
+    // formData.append("userId", "1234567");
+    // Include custom filename
+    console.log(formData);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8080/jobs/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("File upload successful:", response.data);
+      setUploadSuccess(true);
+    } catch (error) {
+      console.error("Error uploading file:", error);
     }
   };
 
   const [name, setName] = useState("");
   const [gender, setGender] = useState("0");
-  const [resume, setResume] = useState("");
 
   // console.log(resume);
 
@@ -163,12 +169,7 @@ const CandidateProfile = () => {
                 type="file"
                 accept=".pdf"
                 encType="multipart/form-data"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  console.log(file)
-                  setResume(file);
-                  // console.log(resume);
-                }}
+                onChange={handleFileChange}
               />
             </div>
 

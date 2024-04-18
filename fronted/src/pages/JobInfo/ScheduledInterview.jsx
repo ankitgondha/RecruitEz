@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import useDataFetch from "@/hooks/useDataFetch";
 
 import { useNavigate } from "react-router-dom";
@@ -54,6 +54,52 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const ScheduledInterview = () => {
+  const jobs = useDataFetch("http://localhost:8080/jobs/all");
+  console.log(jobs);
+
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    //  console.log("came in useEffect");
+
+    const candidateId = window.sessionStorage.getItem("userId");
+    setUserId(candidateId);
+
+    console.log(userId);
+    // console.log("Hit")
+  }, []);
+
+  const matchedJobs = [];
+
+  jobs.forEach((job) => {
+    const candidateArray = job.candidates;
+
+    for (let i = 0; i < candidateArray.length; i++) {
+      if (
+        candidateArray[i].candidateId === userId &&
+        candidateArray[i].status === "Interview"
+      ) {
+        matchedJobs.push({
+          jobId: job._id,
+          role: job.title,
+          companyName: job.company,
+          location: job.location,
+          appliedDate: candidateArray[i].applyDate,
+          status: candidateArray[i].status,
+        });
+
+        break;
+      }
+    }
+  });
+
+  matchedJobs.sort((a, b) => new Date(b.appliedDate) - new Date(a.appliedDate));
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
+  };
+
   const navigate = useNavigate();
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -70,7 +116,7 @@ const ScheduledInterview = () => {
             </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
@@ -106,7 +152,7 @@ const ScheduledInterview = () => {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -136,7 +182,7 @@ const ScheduledInterview = () => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -167,23 +213,37 @@ const ScheduledInterview = () => {
                   </TableHeader>
 
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Software Engineer
-                      </TableCell>
-                      <TableCell className="font-medium">Google</TableCell>
+                    {matchedJobs && matchedJobs.length > 0 ? (
+                      matchedJobs.map((job) => {
+                        return (
+                          <TableRow>
+                            <TableCell className="font-medium">
+                              {job.role}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {job.companyName}
+                            </TableCell>
 
-                      <TableCell className="hidden md:table-cell">
-                        Bangalore
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        2023-07-12 10:42 AM
-                      </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.location}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.appliedDate}
+                            </TableCell>
 
-                      <TableCell>
-                        <Badge variant="outline">None</Badge>
-                      </TableCell>
-                    </TableRow>
+                            <TableCell>
+                              <Badge variant="outline">{job.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan="number_of_columns">
+                          No Jobs found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

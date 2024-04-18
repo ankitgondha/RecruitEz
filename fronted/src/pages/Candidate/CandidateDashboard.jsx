@@ -1,4 +1,4 @@
-import React from "react";
+import { React, useState, useEffect } from "react";
 // import useDataFetch from ".../hooks/useDataFetch.jsx";
 import useDataFetch from "@/hooks/useDataFetch";
 
@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,13 +53,104 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+// import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+// import * as jwt_decode from "jwt-decode";
 
 export function CandidateDashboard() {
   const jobs = useDataFetch("http://localhost:8080/jobs/all");
   console.log(jobs);
-
   const navigate = useNavigate();
+  // const candidateData = useSelector((state)=>state.userData)
+  // console.log("candidate data is", candidateData);
+
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    //  console.log("came in useEffect");
+
+    const candidateId = window.sessionStorage.getItem("userId");
+    setUserId(candidateId);
+
+    console.log(userId);
+    // console.log("Hit")
+  }, []);
+
+  const matchedJobs = [];
+
+  jobs.forEach((job) => {
+    const candidateArray = job.candidates;
+
+    for (let i = 0; i < candidateArray.length; i++) {
+      if (candidateArray[i].candidateId === userId) {
+        matchedJobs.push({
+          jobId: job._id,
+          role: job.title,
+          companyName: job.company,
+          location: job.location,
+          appliedDate: candidateArray[i].applyDate,
+          status: candidateArray[i].status,
+        });
+
+        break;
+      }
+    }
+  });
+
+  matchedJobs.sort((a, b) => new Date(b.appliedDate) - new Date(a.appliedDate));
+  console.log(matchedJobs);
+
+  let jobsApplied = matchedJobs.length;
+  let interviewCount = 0;
+  let hiredCount = 0;
+
+  matchedJobs.forEach((job) => {
+    if (job.status === "Interview") {
+      interviewCount++;
+    } else if (job.status === "Hired") {
+      hiredCount++;
+    }
+  });
+
+  // const [user, setUser] = useState({});
+  // const [userId, setUserId] = useState("");
+
+  // useEffect(() => {
+  //   const userData = window.sessionStorage.getItem("userData");
+  //   const userDataObject = JSON.parse(userData);
+
+  //   if (userDataObject) {
+  //     setUser(userDataObject);
+  //     const candidate = userDataObject.candidate;
+  //     if (candidate) {
+  //       setUserId(candidate._id);
+
+  //       // console.log("User id");
+  //       console.log(userId);
+  //     }
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   let authToken = JSON.parse(sessionStorage.getItem("userData"));
+
+  //   // if (authToken) {
+  //   //   const decodedToken = JWT.decode(authToken.token);
+  //   //   const userId = decodedToken._id;
+
+  //   //   console.log(userId);
+  //   // }
+  // }, []);
+
+  console.log("Number of jobs with status 'interview':", interviewCount);
+  console.log("Number of jobs with status 'hired':", hiredCount);
+
+  const recentJobs = matchedJobs.slice(0, 10);
+  console.log(recentJobs);
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
+  };
 
   const handleJobClick = (id) => {
     navigate("/jobdashboard", { state: { jobId: id } });
@@ -79,7 +171,7 @@ export function CandidateDashboard() {
             </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary">
                 <Home className="h-4 w-4" />
                 Dashboard
@@ -115,7 +207,7 @@ export function CandidateDashboard() {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -145,7 +237,7 @@ export function CandidateDashboard() {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -159,7 +251,7 @@ export function CandidateDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">{jobsApplied} </div>
                 {/* <p className="text-xs text-muted-foreground">
                   +20.1% from last month
                 </p> */}
@@ -173,7 +265,7 @@ export function CandidateDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">150</div>
+                <div className="text-2xl font-bold">{interviewCount} </div>
                 {/* <p className="text-xs text-muted-foreground">
                   +180.1% from last month
                 </p> */}
@@ -187,7 +279,7 @@ export function CandidateDashboard() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">136</div>
+                <div className="text-2xl font-bold">{hiredCount}</div>
                 {/* <p className="text-xs text-muted-foreground">
                   +19% from last month
                 </p> */}
@@ -232,23 +324,37 @@ export function CandidateDashboard() {
                   </TableHeader>
 
                   <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Software Engineer
-                      </TableCell>
-                      <TableCell className="font-medium">Google</TableCell>
+                    {recentJobs && recentJobs.length > 0 ? (
+                      recentJobs.map((job) => {
+                        return (
+                          <TableRow>
+                            <TableCell className="font-medium">
+                              {job.role}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {job.companyName}
+                            </TableCell>
 
-                      <TableCell className="hidden md:table-cell">
-                        Bangalore
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        2023-07-12 10:42 AM
-                      </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.location}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {job.appliedDate}
+                            </TableCell>
 
-                      <TableCell>
-                        <Badge variant="outline">None</Badge>
-                      </TableCell>
-                    </TableRow>
+                            <TableCell>
+                              <Badge variant="outline">{job.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan="number_of_columns">
+                          No Jobs found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>

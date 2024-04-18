@@ -77,21 +77,18 @@ const JobDescription = () => {
   // console.log("userId hit");
   // console.log(user);
 
-  const [user, setUser] = useState({});
   const [userId, setUserId] = useState("");
 
+ 
   useEffect(() => {
-    const userData = window.sessionStorage.getItem("userData");
-    const userDataObject = JSON.parse(userData);
+    //  console.log("came in useEffect");
+    const candidateId = window.sessionStorage.getItem("userId");
+    setUserId(candidateId);
 
-    if (userDataObject) {
-      setUser(userDataObject);
-      const candidate = userDataObject.candidate;
-      if (candidate) {
-        setUserId(candidate._id);
-      }
-    }
+    console.log(userId);
+    // console.log("Hit")
   }, []);
+
   // console.log(userId);
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
 
@@ -99,14 +96,21 @@ const JobDescription = () => {
     // console.log(userId);
     // console.log(job);
     try {
+      let token = sessionStorage.getItem("token");
+      console.log("token is,",token);
       const response = await axios.post("http://localhost:8080/jobs/apply", {
         jobId,
-        userId,
+        token: token,
       });
       console.log(response.data);
     } catch (error) {
       console.error("Error Applying for the job", error.response.data);
     }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
   };
 
   // const timestamp = job.createdAt;
@@ -131,7 +135,7 @@ const JobDescription = () => {
             </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
@@ -147,30 +151,30 @@ const JobDescription = () => {
                 Search Jobs
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/jobs-applied")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Package className="h-4 w-4" />
                 Jobs Applied
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/scheduled-interviews")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                Candidates
+                Interview Scheduled
               </div>
               <div
-                href="#"
+                onClick={() => navigate("/offered-jobs")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <LineChart className="h-4 w-4" />
-                Analytics
+                Offers
               </div>
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -200,7 +204,7 @@ const JobDescription = () => {
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

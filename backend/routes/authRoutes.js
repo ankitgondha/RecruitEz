@@ -5,7 +5,12 @@ import {
   testController,
 } from "../controllers/authController.js";
 
-import { requireSignInRecruiter } from "../middlewares/authMiddleware.js";
+import {
+  requireSignInRecruiter,
+  requireSignInCandidate,
+  isRecruiter,
+  isCandidate,
+} from "../middlewares/authMiddleware.js";
 // import { requireSignIn, isRecruiter } from "../middlewares/authMiddleware.js";
 
 //router object
@@ -20,5 +25,5 @@ router.post("/register", registerController);
 router.post("/login", loginController);
 
 //test routes
-router.get("/test", requireSignInRecruiter, testController);
+router.get("/test", requireSignInRecruiter, isRecruiter, testController);
 export default router;
