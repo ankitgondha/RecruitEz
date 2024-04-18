@@ -17,6 +17,7 @@ import JobDescription from "./pages/Candidate/JobDescription";
 import AppliedJobs from "./pages/JobInfo/AppliedJobs";
 import ScheduledInterview from "./pages/JobInfo/ScheduledInterview";
 import Offers from "./pages/JobInfo/Offers";
+import { CreateJob } from "./pages/createJob";
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
         <Route path="/jobDashboard" element={<JobDashboard />} />
         <Route path="/candidateslist" element={<CandidatesList />} />
         <Route path="/interviewlist" element={<InterviewList />} />
+        <Route path="/create-job" element={<CreateJob />} />
+
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignUp />} />

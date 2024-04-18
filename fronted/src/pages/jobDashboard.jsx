@@ -144,6 +144,7 @@ export function JobDashboard() {
     try {
       const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
         userId : userId,
+        index : index,
         interviewDate: formattedDateTime
       });
 
@@ -363,7 +364,7 @@ export function JobDashboard() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  {job.candidates[index].status ?? "Pending"}
+                                  {job.candidates[index]?.status ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
@@ -373,7 +374,7 @@ export function JobDashboard() {
                                 <Eye className="h-5 w-5" color='#313944' />
                               </TableCell>
                               <TableCell className="text-right">
-                                {job.candidates[index].status === 'selected' ?? "selected" ? (
+                                {job.candidates[index].status === 'Selected' ? (
                                   <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                 ) : (
                                   <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
@@ -434,7 +435,7 @@ export function JobDashboard() {
                         {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates
                             .map((candidate, index) => ({ candidate, index }))
-                            .filter(({ candidate, index }) => job.candidates[index].status === "selected")
+                            .filter(({ candidate, index }) => job.candidates[index].status === "Selected")
                             .map(({ candidate, index }) => (
                               <TableRow>
                                 <TableCell>
@@ -458,7 +459,7 @@ export function JobDashboard() {
                                   <Eye className="h-5 w-5" color='#313944' />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {job.candidates[index].status === 'selected' ? (
+                                  {job.candidates[index].status === 'Selected' ? (
                                     <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                   ) : (
                                     <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />

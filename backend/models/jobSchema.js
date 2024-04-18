@@ -105,7 +105,7 @@ const candidateSchema = new Schema({
   },
   status: {
     type: String,
-    default: "applied",
+    default: "Applied",
   },
   appliedDate:{
     type: Date,
@@ -146,10 +146,10 @@ const jobSchema = new Schema(
       type: String,
       default: "none",
     },
-    selected: {
-      type: [Boolean], 
-      default: false
-    },
+    // selected: {
+    //   type: [Boolean], 
+    //   default: false
+    // },
     candidates: [candidateSchema],
     hired: [Schema.Types.ObjectId],
     createdAt: { type: Date, default: Date.now },
@@ -169,7 +169,6 @@ const JobTracker = mongoose.model("JobTracker", jobTrackerSchema);
 const ResumesATS = mongoose.model("ResumesATS", resumesAtsSchema);
 const Interviewer = mongoose.model("Interviewer", interviewerSchema);
 const Job = mongoose.model("Job", jobSchema);
-
 const ResumeFile = mongoose.model("ResumeFile", fileSchema);
 
 export { User, Resumes, JobTracker, ResumesATS, Interviewer, Job, ResumeFile};
