@@ -9,10 +9,13 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+// import {updateUser} from "../../redux/actions/actions"
+// import { useDispatch,useSelector } from "react-redux";
 
 export function Login() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  // const dispatch = useDispatch();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -32,9 +35,13 @@ export function Login() {
         toast.success(res.data && res.data.message);
 
         console.log(res.data.message);
-        console.log(res.data);
+        console.log("Response data is", res.data);
+        // console.log(res.data);
 
         const candidate = res.data.candidate;
+        const token = res.data.token;
+
+        // dispatch(updateUser(candidate));
         // console.log(candidate._id);
         // console.log(res.data.candidate);
         // setAuth({
@@ -54,16 +61,34 @@ export function Login() {
         // }
 
         // console.log(role);
-        window.sessionStorage.setItem("userData", JSON.stringify(res.data));
+        // window.sessionStorage.setItem("userData", JSON.stringify(res.data));
         // const userData = window.sessionStorage.getItem("userData");
         // const userDataObject = JSON.parse(userData);
         // console.log("Hit");
         // console.log(userDataObject);
 
         if (candidate) {
-          console.log(window.sessionStorage.getItem("user"));
+          const userId = candidate._id;
+          const userRole = candidate.role;
+
+          // console.log(window.sessionStorage.getItem("user"));
+          window.sessionStorage.setItem("userId", userId);
+          window.sessionStorage.setItem("userRole", userRole);
+          window.sessionStorage.setItem("token", token);
+
           navigate("/candidate-dashboard");
         } else {
+          console.log("Hi from login");
+          console.log(res.data);
+
+          const userId = res.data.recruiter._id;
+          const userRole = res.data.recruiter.role;
+
+          // console.log(window.sessionStorage.getItem("user"));
+          window.sessionStorage.setItem("userId", userId);
+          window.sessionStorage.setItem("userRole", userRole);
+          window.sessionStorage.setItem("token", token);
+
           navigate("/dashboard");
         }
 

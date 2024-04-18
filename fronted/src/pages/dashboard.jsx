@@ -63,8 +63,11 @@ import { useNavigate } from 'react-router-dom';
 export function Dashboard() {
 
 
-  const jobs = useDataFetch('http://localhost:8080/jobs/all');
-  console.log(jobs);
+  const jobs = useDataFetch('http://localhost:8080/jobs/all/recruiter');
+  console.log("job is", jobs);
+  // if(jobs.)
+
+  
 
   const navigate = useNavigate();
 
