@@ -16,16 +16,16 @@ import {
 
 const CandidateProfile = () => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [customFileName, setCustomFileName] = useState("");
+  // const [customFileName, setCustomFileName] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
   };
 
-  const handleCustomFileNameChange = (e) => {
-    setCustomFileName(e.target.value);
-  };
+  // const handleCustomFileNameChange = (e) => {
+  //   setCustomFileName(e.target.value);
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

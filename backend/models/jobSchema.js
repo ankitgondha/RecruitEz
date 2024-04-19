@@ -165,6 +165,8 @@ const fileSchema = new Schema({
   userId: String,
 });
 
+
+
 const User = mongoose.model("User", userSchema);
 const Resumes = mongoose.model("Resumes", resumesSchema);
 const JobTracker = mongoose.model("JobTracker", jobTrackerSchema);
@@ -172,5 +174,6 @@ const ResumesATS = mongoose.model("ResumesATS", resumesAtsSchema);
 const Interviewer = mongoose.model("Interviewer", interviewerSchema);
 const Job = mongoose.model("Job", jobSchema);
 const ResumeFile = mongoose.model("ResumeFile", fileSchema);
+
 
 export { User, Resumes, JobTracker, ResumesATS, Interviewer, Job, ResumeFile };

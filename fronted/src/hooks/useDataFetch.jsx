@@ -3,16 +3,16 @@ import { useNavigate } from "react-router-dom";
 function useDataFetch(url) {
   const navigate = useNavigate();
   const [data, setData] = useState([]);
-  const token = sessionStorage.getItem("token")
-  
+  const token = sessionStorage.getItem("token");
+
   useEffect(() => {
-    const separator = url.includes('?') ? '&' : '?';
+    const separator = url.includes("?") ? "&" : "?";
     const tokenUrl = `${url}${separator}token=${token}`;
 
     fetch(tokenUrl)
       .then((response) => {
         console.log("Response is", response);
-        if(response.status === 401){
+        if (response.status === 401) {
           navigate("/");
         }
         if (!response.ok) {
@@ -22,9 +22,12 @@ function useDataFetch(url) {
       })
       .then((data) => setData(data))
       .catch((error) => {
-        console.error("There has been a problem with your fetch operation:", error);
+        console.error(
+          "There has been a problem with your fetch operation:",
+          error
+        );
       });
-  }, [url, navigate]); 
+  }, [url, navigate]);
 
   return data;
 }

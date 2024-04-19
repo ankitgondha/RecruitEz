@@ -35,6 +35,7 @@ export function SignUp() {
           password: registerPassword,
           answer,
           role,
+          gender,
         }
       );
       console.log(res);
