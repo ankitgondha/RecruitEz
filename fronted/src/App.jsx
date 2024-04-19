@@ -17,7 +17,10 @@ import JobDescription from "./pages/Candidate/JobDescription";
 import AppliedJobs from "./pages/JobInfo/AppliedJobs";
 import ScheduledInterview from "./pages/JobInfo/ScheduledInterview";
 import Offers from "./pages/JobInfo/Offers";
-import Temppage from "./pages/Candidate/Temppage";
+import { CreateJob } from "./pages/createJob";
+import { InterviewsAll } from "./pages/InterviewsAll";
+import { AllHired } from "./pages/AllHired";
+import { AllSelected } from "./pages/AllSelected";
 
 function App() {
   return (
@@ -27,6 +30,11 @@ function App() {
         <Route path="/jobDashboard" element={<JobDashboard />} />
         <Route path="/candidateslist" element={<CandidatesList />} />
         <Route path="/interviewlist" element={<InterviewList />} />
+        <Route path="/create-job" element={<CreateJob />} />
+        <Route path="/interviews-all" element={<InterviewsAll/>} />
+        <Route path="/hired-all" element={<AllHired/>} />
+        <Route path="/selected-all" element={<AllSelected/>} />
+
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignUp />} />
@@ -39,7 +47,7 @@ function App() {
         <Route path="/jobs-applied" element={<AppliedJobs />} />
         <Route path="/scheduled-interviews" element={<ScheduledInterview />} />
         <Route path="/offered-jobs" element={<Offers />} />
-        <Route path="/temppage" element={<Temppage />} />
+        {/* <Route path="/temppage" element={<Temppage />} /> */}
 
       </Routes>
     </>

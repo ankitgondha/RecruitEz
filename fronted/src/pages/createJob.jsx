@@ -4,6 +4,7 @@ import {
   File,
   CircleUser,
   PlusCircle,
+  ChevronRight,
   Home,
   LineChart,
   Menu,
@@ -17,6 +18,9 @@ import {
   ShoppingCart,
   Users,
   MoreHorizontal,
+  Eye,
+  Star,
+  CalendarCheck,
   CirclePlus,
   UserRoundCheck,
   Headset,
@@ -31,6 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Tabs,
   TabsContent,
@@ -59,51 +70,68 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Textarea } from "@/components/ui/textarea"
+import { set } from 'mongoose';
 
 
 
-export function InterviewList() {
+export function CreateJob() {
+
   const navigate = useNavigate();
-  const location = useLocation();
-  const { jobId } = location.state || {};
-  console.log(jobId);
+  const [title, setTitle] = useState('');
+  const [requirements, setRequirements] = useState('');
+  const [location, setLocation] = useState('');
+  const [salary, setSalary] = useState('');
+  const [description, setDescription] = useState('');
+  const [seats, setSeats] = useState();
 
-  const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
-  console.log(job);
-
-  const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
-  console.log(jobCandidates);
-
-  const jobInterviews = useDataFetch(`http://localhost:8080/jobs/${jobId}/interviews`);
-  console.log(jobInterviews);
-
-  const handleHired = async (userId, index) => {
-    console.log(userId, index);
+  const handleCreateJob = async () => {
+    console.log(title, requirements, location, salary, description, seats, recruiterId);
     try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/hire-candidate`, {
-        candidateId : userId
+      const response = await axios.post(`http://localhost:8080/jobs/`, {
+        title,
+        requirements,
+        location,
+        salaryRange: salary,
+        description,
+        seats,
+        recruiterId
       });
 
-      console.log(response.data.message);
+      console.log("success", response.data.message);
     } catch (error) {
       console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
     }
   }
+  const [recruiterId, setRecruiterid] = useState("");
 
-  const handleReject = async (userId, index) => {
-    console.log(userId, index);
-    try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/reject`, {
-        userId
-      });
-
-      console.log(response.data.message);
-    } catch (error) {
-      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
-    }
-  }
+  useEffect(() => {
+    const userId = window.sessionStorage.getItem("userId");
+  console.log("recruiter Id : ", userId);
+  setRecruiterid(userId);
+  }, []);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -125,14 +153,14 @@ export function InterviewList() {
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
                 onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
               >
                 <CirclePlus  className="h-4 w-4" />
                 Create Job
@@ -184,14 +212,14 @@ export function InterviewList() {
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
                 onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
                 onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
               >
                 <CirclePlus  className="h-4 w-4" />
                 Create Job
@@ -224,7 +252,7 @@ export function InterviewList() {
             <form>
               <div className="relative">
                 <div className="flex items-center gap-2 font-semibold">
-                  <span className="">Interviews Pending - {job.title}</span>
+                  <span className="">Create a New Job</span>
                 </div>
 
               </div>
@@ -249,85 +277,83 @@ export function InterviewList() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 
-          {/* //table */}
+          {/* //form */}
+
+          <Card x-chunk="dashboard-07-chunk-0">
+            <CardHeader>
+              <CardTitle>Job Details</CardTitle>
+              <CardDescription>
+                add the details about the job
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="name">Title</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    className="w-full"
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="description">Desciption</Label>
+                  <Textarea
+                    id="description"
+                    className="min-h-32"
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="name">Location</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    className="w-full"
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="description">Requirements</Label>
+                  <Textarea
+                    id="description"
+                    className="min-h-32"
+                    onChange={(e) => setRequirements(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="name">Salary-Range</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    className="w-full"
+                    onChange={(e) => setSalary(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3">
+                  <Label htmlFor="name">Vacancy</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    className="w-full"
+                    onChange={(e) => setSeats(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="w-10">
+            <Button type="submit" className='flex items center' onClick={()=>{handleCreateJob()}}>Create Job</Button>
+          </div>
 
 
 
-          <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-
-            <Tabs defaultValue="week">
-              <TabsContent value="week">
-                <Card>
-                  <CardHeader className="px-7">
-                    <CardTitle>Candidates Interviews Pending</CardTitle>
-                    <CardDescription>
-                      Interview pending candidates for the job.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Customer</TableHead>
-                          <TableHead className="hidden sm:table-cell">
-                            Gender
-                          </TableHead>
-                          <TableHead className="hidden sm:table-cell">
-                            Status
-                          </TableHead>
-                          <TableHead className="hidden md:table-cell">
-                            Interview Date
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
 
 
-                        {jobInterviews && jobInterviews.length > 0 ? (
-                          jobInterviews.map((candidate, index) => (
-                            <TableRow>
-                              <TableCell>
-                                <div className="font-medium">{candidate.name}</div>
-                                <div className="hidden text-sm text-muted-foreground md:inline">
-                                  {candidate.email}
-                                </div>
-                              </TableCell>
-                              <TableCell className="hidden sm:table-cell">
-                                {candidate.gender === 1 ? "Male" : "Female"}
-                              </TableCell>
-                              <TableCell className="hidden sm:table-cell">
-                                <Badge className="text-xs" variant="outline">
-                                {job?.candidates[index]?.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="hidden md:table-cell">
-                                {candidate.interviewDate ?? "Not Available"}
-                              </TableCell>
-                              <TableCell>
-                                <Button variant="" size="sm" onClick={() => { handleHired(candidate._id, index) }}>
-                                  Hire
-                                </Button>
-                                <Button variant="outline" className="ml-5" size="sm" onClick={() => { handleReject(candidate._id, index) }}>
-                                  Reject
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan="number_of_columns">
-                              No candidates found.
-                            </TableCell>
-                          </TableRow>
-                        )}
 
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+          <div>
 
-            </Tabs>
           </div>
 
 

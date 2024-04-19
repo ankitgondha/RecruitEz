@@ -173,7 +173,6 @@ const JobTracker = mongoose.model("JobTracker", jobTrackerSchema);
 const ResumesATS = mongoose.model("ResumesATS", resumesAtsSchema);
 const Interviewer = mongoose.model("Interviewer", interviewerSchema);
 const Job = mongoose.model("Job", jobSchema);
-
 const ResumeFile = mongoose.model("ResumeFile", fileSchema);
 
 

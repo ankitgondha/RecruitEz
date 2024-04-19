@@ -4,6 +4,7 @@ import {
   File,
   CircleUser,
   PlusCircle,
+  ChevronRight,
   Home,
   LineChart,
   Menu,
@@ -19,8 +20,10 @@ import {
   MoreHorizontal,
   Eye,
   Star,
-  CalendarCheck
-
+  CalendarCheck,
+  CirclePlus,
+  UserRoundCheck,
+  Headset,
 
 
 } from "lucide-react"
@@ -60,10 +63,43 @@ import {
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import useDataFetch from '@/hooks/useDataFetch';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import React from "react"
+// import TimePicker from 'react-time-picker';
+import dayjs from 'dayjs';
+import 'react-time-picker/dist/TimePicker.css';
+import 'react-clock/dist/Clock.css';
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { set } from 'mongoose';
+
 
 export function CandidatesList() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { jobId } = location.state || {};
   console.log(jobId);
 
@@ -72,6 +108,7 @@ export function CandidatesList() {
 
   const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
   console.log(jobCandidates);
+
 
   const handleSelected = async (index) => {
     try {
@@ -85,18 +122,39 @@ export function CandidatesList() {
     }
   };
 
+
+
+
   const handleInterview = async (index) => {
     const userId = jobCandidates[index]._id;
     console.log('Interview:', index, userId);
+    const formattedDateTime = `${format(dateTime.date, 'dd/MM/yyyy')} ${dateTime.time.$H}:${dateTime.time.$m}`;
+    console.log(formattedDateTime);
+
     try {
       const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
-        userId
+        userId: userId,
+        index: index,
+        interviewDate: formattedDateTime
       });
 
       console.log(response.data.message);
     } catch (error) {
       console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
     }
+  };
+
+
+
+  const [open, setOpen] = useState(false);
+  const [dateTime, setDateTime] = React.useState({
+    date: new Date(),
+    time: '10:00'
+  });
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    navigate("/");
   };
 
 
@@ -110,52 +168,48 @@ export function CandidatesList() {
               <Package2 className="h-6 w-6" />
               <span className="">RecruiteEz</span>
             </div>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
           </div>
           <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
-                href="#"
+                onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
-                href="#"
+                onClick={() => navigate('/create-job')}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <ShoppingCart className="h-4 w-4" />
-                Jobs
+                <CirclePlus className="h-4 w-4" />
+                Create Job
               </div>
               <div
-                href="#"
+                onClick={() => navigate('/interviews-all')}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <Package className="h-4 w-4" />
-                Interview
+                <Headset className="h-4 w-4" />
+                Interview Sceduled
               </div>
               <div
-                href="#"
+                onClick={() => navigate('/hired-all')}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                Candidates
+                Hired Candidates
               </div>
               <div
-                href="#"
+                onClick={() => navigate('/selected-all')}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <LineChart className="h-4 w-4" />
-                Analytics
+                <UserRoundCheck className="h-4 w-4" />
+                Selected Candidates
               </div>
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleLogout}>
               Sign Out
             </Button>
           </div>
@@ -163,7 +217,57 @@ export function CandidatesList() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col">
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate('/create-job')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Create Job
+                </div>
+                <div
+                  onClick={() => navigate('/interviews-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Headset className="h-4 w-4" />
+                  Interview Sceduled
+                </div>
+                <div
+                  onClick={() => navigate('/hired-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Hired Candidates
+                </div>
+                <div
+                  onClick={() => navigate('/selected-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <UserRoundCheck className="h-4 w-4" />
+                  Selected Candidates
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
           <div className="w-full flex-1">
             <form>
               <div className="relative">
@@ -208,40 +312,20 @@ export function CandidatesList() {
                 </TabsList>
 
                 <div className="ml-auto flex items-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 gap-1">
-                        <ListFilter className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                          Filter
-                        </span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuCheckboxItem checked>
-                        All
-                      </DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>ATS</DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>College</DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>CGPA</DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>Degree</DropdownMenuCheckboxItem>
-                      <DropdownMenuCheckboxItem>
-                        Location
-                      </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button size="sm" className="h-8 gap-1" onClick={() => handleJobClick(job._id)}>
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      View All
+                    </span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
 
                 </div>
 
               </div>
-
-
               <TabsContent value="all">
                 <Card>
                   <CardHeader className="px-7">
-                    <CardTitle>Candidates</CardTitle>
+                    <CardTitle>All Candidates</CardTitle>
                     <CardDescription>
                       Recently applied for this role.
                     </CardDescription>
@@ -283,17 +367,17 @@ export function CandidatesList() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  {job.status[index] ?? "Pending"}
+                                  {job.candidates[index]?.status ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                {job.candidates[index].appliedDate?.slice(0, 10) ?? "Not Available"}
                               </TableCell>
                               <TableCell className="text-right">
                                 <Eye className="h-5 w-5" color='#313944' />
                               </TableCell>
                               <TableCell className="text-right">
-                                {job.selected && job.selected[index] ? (
+                                {job.candidates[index].status === 'Selected' ? (
                                   <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                 ) : (
                                   <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
@@ -309,12 +393,15 @@ export function CandidatesList() {
                           </TableRow>
                         )}
 
-
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               </TabsContent>
+
+
+
+
 
               <TabsContent value="selected">
                 <Card>
@@ -342,6 +429,7 @@ export function CandidatesList() {
                             Resume
                           </TableHead>
                           <TableHead className="hidden md:table-cell">Select</TableHead>
+                          <TableHead className="text-left">Schedule Interview</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -350,7 +438,7 @@ export function CandidatesList() {
                         {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates
                             .map((candidate, index) => ({ candidate, index }))
-                            .filter(({ _, index }) => job.selected[index])
+                            .filter(({ candidate, index }) => job.candidates[index].status === "Selected")
                             .map(({ candidate, index }) => (
                               <TableRow>
                                 <TableCell>
@@ -364,24 +452,80 @@ export function CandidatesList() {
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">
                                   <Badge className="text-xs" variant="outline">
-                                    {job.status[index] ?? "Pending"}
+                                    {job.candidates[index].status ?? "Pending"}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell">
-                                  {job.appliedDate[index]?.slice(0, 10) ?? "Not Available"}
+                                  {job.candidates[index].appliedDate?.slice(0, 10) ?? "Not Available"}
                                 </TableCell>
                                 <TableCell className="text-right">
                                   <Eye className="h-5 w-5" color='#313944' />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {job.selected && job.selected[index] ? (
+                                  {job.candidates[index].status === 'Selected' ? (
                                     <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
                                   ) : (
                                     <Star className="h-5 w-5" color="#313944" onClick={() => handleSelected(index)} />
                                   )}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  <CalendarCheck className="h-5 w-5" color="#313944" onClick={() => handleInterview(index)} />
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <CalendarCheck className="h-5 w-5" color="#313944" />
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px]">
+                                      <DialogHeader>
+                                        <DialogTitle>Schedule Interview</DialogTitle>
+                                        <DialogDescription>
+                                          Select Date and Time to Schedule an interview with the candidate.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="grid gap-4 py-4">
+                                        <div className="flex items-center  gap-4">
+                                          <Label htmlFor="name" className="text-right">
+                                            Date
+                                          </Label>
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                  "w-[244px] h-[56px] justify-start text-left font-normal",
+                                                  !dateTime.date && "text-muted-foreground"
+                                                )}
+                                              >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {dateTime.date ? format(dateTime.date, "PPP") : <span>Pick a date</span>}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                              <Calendar
+                                                mode="single"
+                                                selected={dateTime.date}
+                                                onSelect={(newDate) => setDateTime({ ...dateTime, date: newDate })}
+                                                initialFocus
+                                              />
+                                            </PopoverContent>
+                                          </Popover>
+                                        </div>
+                                        <div className="flex items-center  gap-4">
+                                          <Label htmlFor="time" className="text-right">
+                                            Time
+                                          </Label>
+                                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DemoContainer components={['TimePicker']}>
+                                              <TimePicker label="Select a time"
+                                                onChange={(newValue) => setDateTime({ ...dateTime, time: newValue })} />
+                                            </DemoContainer>
+                                          </LocalizationProvider>
+                                        </div>
+                                      </div>
+                                      <DialogFooter>
+                                        <Button type="submit" onClick={() => handleInterview(index)}>Send Email</Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+
                                 </TableCell>
                               </TableRow>
 
@@ -399,7 +543,6 @@ export function CandidatesList() {
                   </CardContent>
                 </Card>
               </TabsContent>
-
             </Tabs>
           </div>
           <div>
