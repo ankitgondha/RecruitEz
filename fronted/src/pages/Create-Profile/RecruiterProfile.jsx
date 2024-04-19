@@ -147,7 +147,6 @@ const RecruiterProfile = () => {
               <Input
                 id="name"
                 type="text"
-                required
                 placeholder="Enter Your Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -212,7 +211,6 @@ const RecruiterProfile = () => {
                 <Input
                   id="company-name"
                   type="text"
-                  required
                   placeholder="Enter Company Name"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}

@@ -97,6 +97,7 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
       );
 
       let profileImg = await ProfileImg.findOne({ userId: req.params.userId });
+      console.log("profile Image is", profileImg);
 
       // console.log("prod::",profileImg);
 
@@ -111,6 +112,7 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
         });
 
         await newFile.save();
+
         console.log(newFile);
         res.status(200).send({
           success: true,
@@ -122,18 +124,28 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
         // console.log(newFile);
       } else {
         // Update the existing document with the new data
-        profileImg.contentType = file.mimetype;
-        profileImg.data = profileImg.data || file.buffer;
+
+        const updateImage = await ProfileImg.findOneAndUpdate(
+          { userId: req.params.userId },
+
+          {
+            contentType: file.mimetype || profileImg.mimetype,
+            data: file.buffer || profileImg.buffer,
+          },
+          {
+            new: true,
+          }
+        );
 
         // Save the updated document
-        await profileImg.save();
-        console.log(profileImg);
+        // await updateImage.save();
+        console.log(updateImage);
         console.log("saved");
 
         res.status(200).send({
           success: true,
           message: "Profile Updated Successfully",
-          updatedRecruiter,
+          updateImage,
         });
       }
     } catch (error) {
