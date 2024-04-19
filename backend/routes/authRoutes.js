@@ -3,6 +3,7 @@ import {
   registerController,
   loginController,
   testController,
+  updateRecruiterProfileController,
 } from "../controllers/authController.js";
 
 import {
@@ -26,4 +27,15 @@ router.post("/login", loginController);
 
 //test routes
 router.get("/test", requireSignInRecruiter, isRecruiter, testController);
+
+router.put(
+  "/updateRecruiterProfile",
+  requireSignInRecruiter,
+  updateRecruiterProfileController
+);
+
+
+
+
+
 export default router;

@@ -4,6 +4,7 @@ const candidateSchema = new mongoose.Schema(
   {
     name: {
       type: String,
+      default: "",
     },
     email: {
       type: String,
@@ -17,7 +18,6 @@ const candidateSchema = new mongoose.Schema(
     gender: {
       type: Number,
     },
-
     answer: {
       type: String,
       required: true,
@@ -31,9 +31,6 @@ const candidateSchema = new mongoose.Schema(
     },
     jobAppliedId: {
       type: Object,
-    },
-    resume: {
-      type: String,
     },
     profilePath: {
       type: String,
@@ -51,6 +48,7 @@ const recruiterSchema = new mongoose.Schema(
   {
     name: {
       type: String,
+      default: "",
     },
     email: {
       type: String,
@@ -75,12 +73,9 @@ const recruiterSchema = new mongoose.Schema(
     jobPostId: {
       type: Object,
     },
-
-    profilePath: {
-      type: String,
-    },
     company: {
       type: String,
+      default: "",
     },
   },
   {
@@ -88,7 +83,9 @@ const recruiterSchema = new mongoose.Schema(
   }
 );
 
+
 const Candidate = mongoose.model("Candidate", candidateSchema);
 const Recruiter = mongoose.model("Recruiter", recruiterSchema);
+
 
 export { Candidate, Recruiter };

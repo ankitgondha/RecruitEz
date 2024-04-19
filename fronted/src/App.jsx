@@ -17,6 +17,7 @@ import JobDescription from "./pages/Candidate/JobDescription";
 import AppliedJobs from "./pages/JobInfo/AppliedJobs";
 import ScheduledInterview from "./pages/JobInfo/ScheduledInterview";
 import Offers from "./pages/JobInfo/Offers";
+import Temppage from "./pages/Candidate/Temppage";
 
 function App() {
   return (
@@ -38,6 +39,8 @@ function App() {
         <Route path="/jobs-applied" element={<AppliedJobs />} />
         <Route path="/scheduled-interviews" element={<ScheduledInterview />} />
         <Route path="/offered-jobs" element={<Offers />} />
+        <Route path="/temppage" element={<Temppage />} />
+
       </Routes>
     </>
   );

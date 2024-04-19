@@ -180,3 +180,33 @@ export const testController = (req, res) => {
 
   res.send("Protected Routes");
 };
+
+export const updateRecruiterProfileController = async (req, res) => {
+  try {
+    const { name, gender, company, profileUrl } = req.body;
+    const recruiter = await Recruiter.findById(req.recruiter._id);
+
+    const updatedRecruiter = await Recruiter.findByIdAndUpdate(
+      req.recruiter._id,
+      {
+        name: name || recruiter.name,
+        gender: gender || recruiter.gender,
+        company: company || recruiter.company,
+        profileUrl: profileUrl || recruiter.profileUrl,
+      },
+      { new: true }
+    );
+    res.status(200).send({
+      success: true,
+      message: "Profile Updated Successfully",
+      updatedRecruiter,
+    });
+  } catch (error) {
+    // console.log(error);
+    res.status(400).send({
+      success: false,
+      message: "Error While Update profile",
+      error,
+    });
+  }
+};

@@ -79,7 +79,6 @@ const JobDescription = () => {
 
   const [userId, setUserId] = useState("");
 
- 
   useEffect(() => {
     //  console.log("came in useEffect");
     const candidateId = window.sessionStorage.getItem("userId");
@@ -89,15 +88,23 @@ const JobDescription = () => {
     // console.log("Hit")
   }, []);
 
+  // if (userId) {
+  //   console.log("cc id is set");
+  // } else {
+  //   console.log("cc id is not set");
+  // }
+
   // console.log(userId);
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
+
+  console.log("job is ", job);
 
   const handleApply = async () => {
     // console.log(userId);
     // console.log(job);
     try {
       let token = sessionStorage.getItem("token");
-      console.log("token is,",token);
+      console.log("token is,", token);
       const response = await axios.post("http://localhost:8080/jobs/apply", {
         jobId,
         token: token,
