@@ -97,46 +97,26 @@ import { set } from 'mongoose';
 
 
 
-export function CreateJob() {
+export function InterviewsAll() {
 
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [requirements, setRequirements] = useState('');
-  const [location, setLocation] = useState('');
-  const [salary, setSalary] = useState('');
-  const [description, setDescription] = useState('');
-  const [seats, setSeats] = useState();
-
-  const handleCreateJob = async () => {
-    console.log(title, requirements, location, salary, description, seats, recruiterId);
-    try {
-      const response = await axios.post(`http://localhost:8080/jobs/`, {
-        title,
-        requirements,
-        location,
-        salaryRange: salary,
-        description,
-        seats,
-        recruiterId
-      });
-
-      console.log("success", response.data.message);
-    } catch (error) {
-      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
-    }
-  }
   const [recruiterId, setRecruiterid] = useState("");
 
   useEffect(() => {
     const userId = window.sessionStorage.getItem("userId");
-  console.log("recruiter Id : ", userId);
-  setRecruiterid(userId);
+    console.log("recruiter Id : ", userId);
+    setRecruiterid(userId);
   }, []);
 
   const handleLogout = () => {
     sessionStorage.clear();
     navigate("/");
   };
+  
+
+  const url = `http://localhost:8080/jobs/interviews?recruiterId=${recruiterId}`;
+    const interviews = useDataFetch(url);
+  console.log("interviews : ", interviews);
 
 
   return (
@@ -160,14 +140,14 @@ export function CreateJob() {
               </div>
               <div
                 onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <CirclePlus  className="h-4 w-4" />
+                <CirclePlus className="h-4 w-4" />
                 Create Job
               </div>
               <div
                 onClick={() => navigate('/interviews-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
               >
                 <Headset className="h-4 w-4" />
                 Interview Sceduled
@@ -183,7 +163,7 @@ export function CreateJob() {
                 onClick={() => navigate('/selected-all')}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <UserRoundCheck  className="h-4 w-4" />
+                <UserRoundCheck className="h-4 w-4" />
                 Selected Candidates
               </div>
             </nav>
@@ -197,7 +177,7 @@ export function CreateJob() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-        <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -209,50 +189,50 @@ export function CreateJob() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
-              <div
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </div>
-              <div
-                onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
-              >
-                <CirclePlus  className="h-4 w-4" />
-                Create Job
-              </div>
-              <div
-                onClick={() => navigate('/interviews-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Headset className="h-4 w-4" />
-                Interview Sceduled
-              </div>
-              <div
-                onClick={() => navigate('/hired-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Users className="h-4 w-4" />
-                Hired Candidates
-              </div>
-              <div
-                onClick={() => navigate('/selected-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <UserRoundCheck  className="h-4 w-4" />
-                Selected Candidates
-              </div>
-            </nav>
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate('/dashboard')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate('/create-job')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Create Job
+                </div>
+                <div
+                  onClick={() => navigate('/interviews-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
+                >
+                  <Headset className="h-4 w-4" />
+                  Interview Sceduled
+                </div>
+                <div
+                  onClick={() => navigate('/hired-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Hired Candidates
+                </div>
+                <div
+                  onClick={() => navigate('/selected-all')}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <UserRoundCheck className="h-4 w-4" />
+                  Selected Candidates
+                </div>
+              </nav>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
             <form>
               <div className="relative">
                 <div className="flex items-center gap-2 font-semibold">
-                  <span className="">Create a New Job</span>
+                  <span className="">Interview Sceduled</span>
                 </div>
 
               </div>
@@ -278,79 +258,6 @@ export function CreateJob() {
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 
           {/* //form */}
-
-          <Card x-chunk="dashboard-07-chunk-0">
-            <CardHeader>
-              <CardTitle>Job Details</CardTitle>
-              <CardDescription>
-                add the details about the job
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="name">Title</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    className="w-full"
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="description">Desciption</Label>
-                  <Textarea
-                    id="description"
-                    className="min-h-32"
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="name">Location</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    className="w-full"
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="description">Requirements</Label>
-                  <Textarea
-                    id="description"
-                    className="min-h-32"
-                    onChange={(e) => setRequirements(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="name">Salary-Range</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    className="w-full"
-                    onChange={(e) => setSalary(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="name">Vacancy</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    className="w-full"
-                    onChange={(e) => setSeats(e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="w-10">
-            <Button type="submit" className='flex items center' onClick={()=>{handleCreateJob()}}>Create Job</Button>
-          </div>
-
-
-
-
-
 
           <div>
 

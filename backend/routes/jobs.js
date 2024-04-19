@@ -14,13 +14,22 @@ const upload = multer({ storage: storage });
 router.post("/", async (req, res) => {
   try {
     const job = new Job({
-      ...req.body,
-      createdBy: req.body.createdBy,
+      title: req.body.title,
+      requirements: req.body.requirements,
+      location: req.body.location,
+      salaryRange: req.body.salaryRange,
+      description: req.body.description,
+      seats: req.body.seats,
+      createdBy: req.body.recruiterId, 
+      active: true, 
+      status: "none"
     });
+
     await job.save();
     res.status(201).send(job);
   } catch (error) {
-    res.status(400).send(error);
+    console.error('Failed to create job:', error);
+    res.status(400).send({ error: error.message });
   }
 });
 
@@ -33,12 +42,24 @@ router.get("/all", isCandidate, async (req, res) => {
     res.status(500).send(error);
   }
 });
-router.get("/all/recruiter", isRecruiter, async (req, res) => {
+
+// GET endpoint to fetch jobs by recruiter ID
+router.get("/all/recruiter", async (req, res) => {
   try {
-    const jobs = await Job.find({});
-    res.send(jobs);
+    const recruiterId = req.query.recruiterId;
+    if (!recruiterId) {
+      return res.status(400).send({ error: 'Recruiter ID is required' });
+    }
+
+    // Find all jobs where 'createdBy' matches the provided recruiter ID
+    const jobs = await Job.find({ createdBy: recruiterId });
+
+    // Respond with the found jobs
+    res.status(200).send(jobs);
   } catch (error) {
-    res.status(500).send(error);
+    // Log the error and respond with a 500 status code for server error
+    console.error('Failed to fetch jobs:', error);
+    res.status(500).send({ error: error.message });
   }
 });
 
@@ -56,7 +77,7 @@ router.get("/:jobId", async (req, res) => {
 });
 
 // GET - Retrieve all candidates for a job by ID
-router.get("/:jobId/candidates", isRecruiter, async (req, res) => {
+router.get("/:jobId/candidates", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -76,8 +97,7 @@ router.get("/:jobId/candidates", isRecruiter, async (req, res) => {
 });
 
 // GET - Retrieve all candidates for a job by ID for Interviews
-// GET - Retrieve all candidates for a job by ID for Interviews
-router.get("/:jobId/interviews", isRecruiter, async (req, res) => {
+router.get("/:jobId/interviews", async (req, res) => {
   try {
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -109,8 +129,43 @@ router.get("/:jobId/interviews", isRecruiter, async (req, res) => {
   }
 });
 
+// GET - Retrieve all candidates for a job by ID for Interviews
+router.get("/interviews", async (req, res) => {
+  const recruiterId = req.query.recruiterId;
+
+  if (!recruiterId) {
+    return res.status(400).send({ error: 'Recruiter ID is required' });
+  }
+
+  console.log(recruiterId);
+  try {
+    console.log('hi');
+    const jobs = await Job.find({ createdBy: recruiterId });
+
+    const candidatesForInterview = jobs.reduce((acc, job) => {
+      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Interview');
+      interviewCandidates.forEach(candidate => {
+        acc.push({
+          jobId: job._id,
+          jobTitle: job.title,
+          candidateId: candidate.candidateId,
+          applyDate: candidate.applyDate,
+          interviewDate: job.interviews.find(interview => interview.candidateId === candidate.candidateId)?.interviewDate
+        });
+      });
+      return acc;
+    }, []);
+
+    res.status(200).send(candidatesForInterview);
+  } catch (error) {
+    console.error('Failed to fetch candidate interviews:', error);
+    res.status(500).send({ error: error.message });
+  }
+});
+
+
 // PUT - Update a job by ID
-router.put("/:jobId", isRecruiter, async (req, res) => {
+router.put("/:jobId", async (req, res) => {
   try {
     const job = await Job.findByIdAndUpdate(req.params.jobId, req.body, {
       new: true,
@@ -126,7 +181,7 @@ router.put("/:jobId", isRecruiter, async (req, res) => {
 });
 
 // PUT - update selected array to a job by ID
-router.put("/toggle-selected/:jobId", isRecruiter, async (req, res) => {
+router.put("/toggle-selected/:jobId", async (req, res) => {
   const { index } = req.body; // Index of the candidate in the candidates array
   const { jobId } = req.params;
 
@@ -157,7 +212,7 @@ router.put("/toggle-selected/:jobId", isRecruiter, async (req, res) => {
 });
 
 // DELETE - Delete a job by ID
-router.delete("/:jobId", isRecruiter, async (req, res) => {
+router.delete("/:jobId", async (req, res) => {
   try {
     const job = await Job.findByIdAndDelete(req.params.jobId);
     if (!job) {
@@ -219,7 +274,7 @@ router.put('/:jobId/add-interviewee', async (req, res) => {
 
 
 // Route to set a candidate's status to 'hired' and remove them from interviews
-router.put("/:jobId/hire-candidate", isRecruiter, async (req, res) => {
+router.put("/:jobId/hire-candidate", async (req, res) => {
   const { jobId } = req.params;
   const { candidateId } = req.body;
 
@@ -289,6 +344,10 @@ router.put('/:jobId/reject', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+
+
+
 
 //Apply for the job
 router.post("/apply", isCandidate, async (req, res) => {
@@ -360,6 +419,7 @@ router.post("/apply", isCandidate, async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 
 router.post("/tokenDetails", async (req, res) => {
   const token = req.body;
