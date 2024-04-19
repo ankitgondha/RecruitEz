@@ -52,7 +52,7 @@ const RecruiterProfile = () => {
 
       const apiUrl = `http://localhost:8080/users/${candidateId}/${role}`;
       await axios
-        .get(apiUrl, formData)
+        .get(apiUrl, requestData)
         .then((response) => {
           // Handle successful response
           // console.log("User data:", response);
@@ -90,6 +90,7 @@ const RecruiterProfile = () => {
   const [companyName, setCompanyName] = useState(
     currUser.companyName == null ? "" : currUser.companyName
   );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 

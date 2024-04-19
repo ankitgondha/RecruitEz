@@ -66,6 +66,7 @@ router.get("/:userId/:role", async (req, res) => {
     res.status(500).send();
   }
 });
+
 const storage = multer.memoryStorage(); // Store file data in memory
 const upload = multer({ storage: storage });
 

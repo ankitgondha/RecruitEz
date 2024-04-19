@@ -22,6 +22,7 @@ import { InterviewsAll } from "./pages/InterviewsAll";
 import { AllHired } from "./pages/AllHired";
 import { AllSelected } from "./pages/AllSelected";
 import Temppage from "./pages/Candidate/Temppage";
+import ShowRecruiterProfile from "./pages/Create-Profile/ShowRecruiterProfile";
 
 function App() {
   return (
@@ -49,6 +50,10 @@ function App() {
         <Route path="/scheduled-interviews" element={<ScheduledInterview />} />
         <Route path="/offered-jobs" element={<Offers />} />
         <Route path="/temppage" element={<Temppage />} />
+        <Route
+          path="/showrecruiterprofile"
+          element={<ShowRecruiterProfile />}
+        />
       </Routes>
     </>
   );

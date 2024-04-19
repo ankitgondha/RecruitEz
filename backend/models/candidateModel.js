@@ -59,9 +59,6 @@ const recruiterSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    gender: {
-      type: Number,
-    },
     answer: {
       type: String,
       required: true,
@@ -83,9 +80,7 @@ const recruiterSchema = new mongoose.Schema(
   }
 );
 
-
 const Candidate = mongoose.model("Candidate", candidateSchema);
 const Recruiter = mongoose.model("Recruiter", recruiterSchema);
-
 
 export { Candidate, Recruiter };
