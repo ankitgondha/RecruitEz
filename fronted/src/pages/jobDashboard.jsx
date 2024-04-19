@@ -88,6 +88,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { set } from "mongoose";
+import { Recruiter } from "@/models/candidateModel";
 
 
 export function JobDashboard() {
@@ -129,6 +130,14 @@ export function JobDashboard() {
     }
   };
 
+  const [recruiterId, setRecruiterid] = useState("");
+
+  useEffect(() => {
+    const userId = window.sessionStorage.getItem("userId");
+  console.log("recruiter Id : ", userId);
+  setRecruiterid(userId);
+  }, []);
+
   const handleInterview = async (index) => {
     const userId = jobCandidates[index]._id;
     console.log("Interview:", index, userId);
@@ -148,6 +157,22 @@ export function JobDashboard() {
     } catch (error) {
       console.error(
         "Failed to add interviewee:",
+        error.response?.data?.error || error.message
+      );
+    }
+
+    try {
+      const response = await axios.post(`http://localhost:8080/jobs/mail`, {
+        candidateId : userId,
+        jobId : jobId,
+        RecruiterId : recruiterId,
+        interviewDate: formattedDateTime
+      });
+
+      console.log("email sent: ", response.data.message);
+    } catch (error) {
+      console.error(
+        "Failed to send email:",
         error.response?.data?.error || error.message
       );
     }
