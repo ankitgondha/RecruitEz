@@ -5,15 +5,54 @@ from unidecode import unidecode
 from flask_cors import CORS
 import fitz  # PyMuPDF
 from flask import Flask, request, jsonify, render_template
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+
 import base64
 
+load_dotenv()
 
-genai.configure(api_key="API_KEY")
+api_Key = os.environ.get("API_KEY")
+
+genai.configure(api_key=api_Key)
 
 app = Flask(__name__)
 CORS(app)
-tags_vals = ["O", "Date", "Languages", "Projects", "Hobbies", "Nationality", "Date of birth", "Objective", "LinkedIn", "Career Goals", "Profile", "Greeting", "Greeting", "Company Name", "Job Title", "Phone No.", "Website", "Name", "Address", "Email", "Companies worked at", "Phone No", "Skills", "Email Address",
-             "Location", "Degree", "Experience", "College Name", "Graduation Year", "Education", "Designation", "Years of Experience"]
+tags_vals = [
+    "O",
+    "Date",
+    "Languages",
+    "Projects",
+    "Hobbies",
+    "Nationality",
+    "Date of birth",
+    "Objective",
+    "LinkedIn",
+    "Career Goals",
+    "Profile",
+    "Greeting",
+    "Greeting",
+    "Company Name",
+    "Job Title",
+    "Phone No.",
+    "Website",
+    "Name",
+    "Address",
+    "Email",
+    "Companies worked at",
+    "Phone No",
+    "Skills",
+    "Email Address",
+    "Location",
+    "Degree",
+    "Experience",
+    "College Name",
+    "Graduation Year",
+    "Education",
+    "Designation",
+    "Years of Experience",
+]
 
 tag2idx = {t: i for i, t in enumerate(tags_vals)}
 idx2tag = {i: t for i, t in enumerate(tags_vals)}
@@ -32,13 +71,14 @@ def extract_text_from_pdf(file_path):
     return clean_output
 
 
-@app.route('/')
+@app.route("/", methods=["POST"])
 def main():
-    return render_template("index.html")
+    # return render_template("index.html")
+    return "Hi"
 
 
 def get_gemini_response(input, prompt):
-    model = genai.GenerativeModel('models/gemini-pro')
+    model = genai.GenerativeModel("models/gemini-pro")
     response = model.generate_content([input, prompt])
     return response.text
 
@@ -58,18 +98,18 @@ input_prompt3 = """
 """
 
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict_resume():
 
     data = request.json
-    if 'data' in data and 'id' in data and 'job_description' in data:
-        base64_string = data['data']
-        file_id = data['id']
+    if "data" in data and "id" in data and "job_description" in data:
+        base64_string = data["data"]
+        file_id = data["id"]
         decoded_bytes = base64.b64decode(base64_string)
-        with open(f'{file_id}.pdf', 'wb') as f:
+        with open(f"{file_id}.pdf", "wb") as f:
             f.write(decoded_bytes)
-
-        resume_text = extract_text_from_pdf(file_id)
+        name_file = f"{file_id}.pdf"
+        resume_text = extract_text_from_pdf(name_file)
         response = []
         print(resume_text)
         finl_text = ""
@@ -78,8 +118,8 @@ def predict_resume():
             finl_text += resume_text[text]
 
         data_with_json = get_gemini_response(input_prompt2, finl_text)
-        start_index = data_with_json.find('{')
-        end_index = data_with_json.rfind('}') + 1
+        start_index = data_with_json.find("{")
+        end_index = data_with_json.rfind("}") + 1
         json_data = data_with_json[start_index:end_index]
         parsed_data = json.loads(json_data)
         data_with_json = get_gemini_response(input_prompt3, json_data)
@@ -90,7 +130,5 @@ def predict_resume():
         return "Missing 'data' or 'id' key in the data."
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True, port=9999)
-
-

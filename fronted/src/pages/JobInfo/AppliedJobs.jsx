@@ -162,6 +162,58 @@ const AppliedJobs = () => {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col">
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate("/search-jobs")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Search className="h-4 w-4" />
+                  Search Jobs
+                </div>
+                <div
+                  onClick={() => navigate("/jobs-applied")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Package className="h-4 w-4" />
+                  Jobs Applied
+                </div>
+                <div
+                  onClick={() => navigate("/scheduled-interviews")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Interview Scheduled
+                </div>
+                <div
+                  onClick={() => navigate("/offered-jobs")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <LineChart className="h-4 w-4" />
+                  Offers
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
+
           <div className="w-full flex-1">
             <form>
               <div className="relative">
