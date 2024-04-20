@@ -6,9 +6,12 @@ import { ResumeFile } from "../models/jobSchema.js";
 import multer from "multer";
 import { isCandidate, isRecruiter } from "../middlewares/authMiddleware.js";
 import JWT from "jsonwebtoken";
+import { sendMail } from "../controllers/sendMail.js";
 
-const storage = multer.memoryStorage(); // Store file data in memory
+const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
+
+router.post('/mail', sendMail);
 
 // POST - Create a new job
 router.post("/", async (req, res) => {
