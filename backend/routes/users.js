@@ -8,6 +8,35 @@ import ProfileImg from "../models/ProfileImg.js";
 import MyResumeSchema from "../models/ResumePdf.js";
 // import MyResumeSchema from "./../models/ResumePdf";
 
+
+function flattenJSONArray(jsonArray) {
+  let flattenedArray = [];
+
+  // Iterate through each element of the JSON array
+  jsonArray.forEach(element => {
+      // Check if the element is an array
+      if (Array.isArray(element)) {
+          // If it's an array, iterate through its elements
+          element.forEach(innerElement => {
+              // Check if the inner element is an object
+              if (typeof innerElement === 'object' && innerElement !== null) {
+                  // If it's an object, convert it to a string and push to the flattened array
+                  flattenedArray.push(JSON.stringify(innerElement));
+              } else {
+                  // If it's not an object, simply push it to the flattened array
+                  flattenedArray.push(innerElement);
+              }
+          });
+      } else {
+          // If the element is not an array, simply push it to the flattened array
+          flattenedArray.push(element);
+      }
+  });
+
+  return flattenedArray;
+}
+
+
 // POST - Create a new user
 router.post("/", async (req, res) => {
   try {
@@ -338,7 +367,7 @@ router.post(
         };
 
         const flaskResponse = await axios.post(
-          "http://localhost:9999/upload",
+          "http://localhost:9999/predict",
           newdata
         );
 
@@ -379,11 +408,14 @@ router.post(
         console.log("new Data is", newdata);
 
         const flaskResponse = await axios.post(
-          "http://localhost:9999/upload",
+          "http://localhost:9999/predict",
           newdata
         );
 
         console.log("Flask response:", flaskResponse.data);
+        
+
+
 
         res.status(200).send({
           success: true,

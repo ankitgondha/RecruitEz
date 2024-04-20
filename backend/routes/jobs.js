@@ -7,6 +7,8 @@ import multer from "multer";
 import { isCandidate, isRecruiter } from "../middlewares/authMiddleware.js";
 import JWT from "jsonwebtoken";
 import { sendMail } from "../controllers/sendMail.js";
+import MyResumeSchema from "../models/ResumePdf.js"
+import axios from "axios";
 
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
@@ -394,8 +396,48 @@ router.post("/apply", isCandidate, async (req, res) => {
         });
       }
 
+
+      let resume = await MyResumeSchema.findOne({
+        userId:userId,
+      });
+
+      if (!resume) {
+        return res.send("No resume found")
+      }
+
+      console.log(resume)
+
+      const base64Data = btoa(
+        new Uint8Array(resume.data).reduce(
+          (data, byte) => data + String.fromCharCode(byte),
+          ""
+        )
+      );
+
+      const newdata = {
+        data:base64Data,
+        id:userId,
+        job_description: job.description,
+      };
+
+      console.log(newdata)
+
+      // console.log("new Data is", newdata);
+
+      const flaskResponse = await axios.post(
+        "http://localhost:9999/predict",
+        newdata
+      );
+
+      console.log("Flask response:", flaskResponse.data);
+      
+      
+
+
+
       const candidates_var = {
         candidateId: userId,
+        ATS_Score:flaskResponse.data.ATS
       };
 
       job.candidates.push(candidates_var);

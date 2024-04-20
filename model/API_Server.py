@@ -109,7 +109,8 @@ def predict_resume():
         with open(f"{file_id}.pdf", "wb") as f:
             f.write(decoded_bytes)
 
-        resume_text = extract_text_from_pdf(file_id)
+        new_file=f'{file_id}.pdf'
+        resume_text = extract_text_from_pdf(new_file)
         response = []
         print(resume_text)
         finl_text = ""

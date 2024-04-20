@@ -100,7 +100,7 @@ const CandidateProfile = () => {
     console.log(formData);
 
     // const apiUrl = `http://localhost:8080/users/updateCandidate/${userId}`;
-    const apiUrl = `http://localhost:8080/uploadResume/${userId}`;
+    const apiUrl = `http://localhost:8080/users/updateCandidate/${userId}`;
     await axios
       .post(apiUrl, formData, {
         headers: {
