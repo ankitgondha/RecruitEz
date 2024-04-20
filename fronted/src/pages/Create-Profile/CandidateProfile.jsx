@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
-import axios from "axios";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,70 +13,127 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
 
 const CandidateProfile = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
   // const [customFileName, setCustomFileName] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const navigate = useNavigate();
 
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
+  const [userId, setUserId] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [currUser, setCurrUser] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [gender, setGender] = useState("0");
+  const [resumeFile, setResumeFile] = useState(null);
+
+  const handleResumeFileChange = (e) => {
+    setResumeFile(e.target.files[0]);
   };
 
-  // const handleCustomFileNameChange = (e) => {
-  //   setCustomFileName(e.target.value);
-  // };
+  const handleProfileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+  // const [customFileName, setCustomFileName] = useState("");
+  // const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  useEffect(() => {
+    const DataLoader = async () => {
+      console.log("came in useEffect");
+      const candidateId = window.sessionStorage.getItem("userId");
+      setUserId(candidateId);
+      console.log(userId);
+      const role = window.sessionStorage.getItem("userRole");
+      setUserRole(role);
+
+      const requestData = {
+        userId: candidateId,
+        role: role,
+      };
+
+      const apiUrl = `http://localhost:8080/users/userInfo/${candidateId}/${role}`;
+      await axios
+        .get(apiUrl, requestData)
+        .then((response) => {
+          // Handle successful response
+          // console.log("User data:", response);
+          setCurrUser(response.data);
+        })
+        .catch((error) => {
+          // Handle error
+          console.error("Error fetching user data:", error);
+        });
+      // console.log("user useeffect is", user);
+
+      console.log("User role:", userRole);
+
+      console.log("Hit");
+    };
+
+    DataLoader();
+  }, []);
+
+  console.log(currUser);
+
+  const [name, setName] = useState(currUser.name == null ? "" : currUser.name);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // console.log(name);
+    // console.log(companyName);
+
+    const requestData = {
+      role: userRole,
+      name: name,
+    };
+
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("customFileName", "1234567");
-    // formData.append("userId", window.sessionStorage.getItem("userId"));
-    // formData.append("userId", "1234567");
+
+    // formData.append("profilPic", selectedFile);
+    formData.append("file", resumeFile);
+    // formData.append("role", userRole);
+    // formData.append("company", companyName);
+    formData.append("name", name);
+
+    // Include custom filename
     // Include custom filename
     console.log(formData);
 
-    try {
-      const response = await axios.post(
-        "http://localhost:8080/jobs/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      console.log("File upload successful:", response.data);
-      setUploadSuccess(true);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    }
+    // const apiUrl = `http://localhost:8080/users/updateCandidate/${userId}`;
+    const apiUrl = `http://localhost:8080/uploadResume/${userId}`;
+    await axios
+      .post(apiUrl, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        // Handle successful response
+        console.log("User data:", response);
+        // setCurrUser(response.data);
+      })
+      .catch((error) => {
+        // Handle error
+        console.error("Error fetching user data:", error);
+      });
   };
 
-  const [name, setName] = useState("");
-  const [gender, setGender] = useState("0");
+  if (!currUser) {
+    return <h1>Loading</h1>;
+  }
 
-  // console.log(resume);
-
-  const navigate = useNavigate();
-
-  const handleGender = (event) => {
-    const value = parseInt(event.target.value); // Convert value to integer
-    setGender(value); // Update role state based on selected value
-  };
-
-  console.log(name);
+  // const handleCustomFileNameChange = (e) => {
+  //   setCustomFileName(e.target.value);
+  // };
 
   return (
     <div className="w-full h-screen lg:grid lg:min-h-[500px] lg:grid-cols-2 xl:min-h-screen">
       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold mb-4">Create Profile</h1>
+            <h1 className="text-3xl font-bold mb-4">Update Profile</h1>
           </div>
-          <div className="grid gap-4">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="name">Name</Label>
@@ -91,13 +148,13 @@ const CandidateProfile = () => {
               />
             </div>
 
-            <div className="flex my-2">
+            {/* <div className="flex my-2">
               <div className="">
                 <label htmlFor="selectGender" className="block mb-2">
                   Select Gender
                 </label>
 
-                {/* <div className="flex flex-row"> */}
+            
                 <div id="selectGender" className="flex space-x-4">
                   <input
                     type="radio"
@@ -139,27 +196,6 @@ const CandidateProfile = () => {
                   </label>
                 </div>
               </div>
-            </div>
-
-            {/* </div> */}
-
-            {/* <div>
-              <Select>
-                <div className="flex items-center mb-3">
-                  <Label htmlFor="gender">Gender</Label>
-                </div>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue id="gender" placeholder="Select Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                  <SelectItem value="noDisclose">
-                    Not to be disclosed
-                  </SelectItem>
-                </SelectContent>
-              </Select>
             </div> */}
 
             <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -169,27 +205,19 @@ const CandidateProfile = () => {
                 type="file"
                 accept=".pdf"
                 encType="multipart/form-data"
-                onChange={handleFileChange}
+                onChange={handleResumeFileChange}
               />
             </div>
-
+            {/* 
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="picture">Upload Profile Pic</Label>
-              <Input id="picture" type="file" />
-            </div>
+              <Input id="picture" type="file" onChange={handleProfileChange} />
+            </div> */}
 
-            <div className="grid w-full gap-1.5">
-              <Label htmlFor="message">Intro</Label>
-              <Textarea
-                placeholder="Write something about yourself"
-                id="message"
-              />
-            </div>
-
-            <Button onClick={handleSubmit} type="submit" className="w-full">
-              Create Profile
+            <Button type="submit" className="w-full">
+              Update Profile
             </Button>
-          </div>
+          </form>
         </div>
       </div>
       <div className="hidden bg-muted lg:block ">
