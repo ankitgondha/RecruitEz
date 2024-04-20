@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, render_template
 import base64
 
 
-genai.configure(api_key="API_KEY")
+genai.configure(api_key="AIzaSyCG3eoJ2e_OW1XCL77mzRTCWr8u8nIraIk")
 
 app = Flask(__name__)
 CORS(app)
@@ -68,8 +68,8 @@ def predict_resume():
         decoded_bytes = base64.b64decode(base64_string)
         with open(f'{file_id}.pdf', 'wb') as f:
             f.write(decoded_bytes)
-
-        resume_text = extract_text_from_pdf(file_id)
+        name_file=f'{file_id}.pdf'
+        resume_text = extract_text_from_pdf(name_file)
         response = []
         print(resume_text)
         finl_text = ""
@@ -92,5 +92,3 @@ def predict_resume():
 
 if __name__ == '__main__':
     app.run(debug=True, port=9999)
-
-
