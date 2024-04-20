@@ -50,7 +50,7 @@ const RecruiterProfile = () => {
         role: role,
       };
 
-      const apiUrl = `http://localhost:8080/users/${candidateId}/${role}`;
+      const apiUrl = `http://localhost:8080/users/userInfo/${candidateId}/${role}`;
       await axios
         .get(apiUrl, requestData)
         .then((response) => {

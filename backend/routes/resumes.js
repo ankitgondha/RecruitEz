@@ -21,6 +21,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET - Retrieve all submitted resumes
+
 router.get("/all", async (req, res) => {
   try {
     const resumes = await Resumes.find({});
@@ -73,8 +74,6 @@ router.delete("/:resumeId", async (req, res) => {
   }
 });
 
-
-
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./files");
@@ -85,10 +84,7 @@ const storage = multer.diskStorage({
   },
 });
 
-
 const upload = multer({ storage: storage });
-
-
 
 router.get("/get-files", async (req, res) => {
   try {
@@ -98,18 +94,15 @@ router.get("/get-files", async (req, res) => {
   } catch (error) {}
 });
 
-
-
 router.post("/upload", upload.single("file"), async (req, res) => {
   console.log(req.file);
   const fileName = req.file;
   try {
-    const data=await ResumeFile.create({  pdf: fileName });
-    res.send({ status:data  });
+    const data = await ResumeFile.create({ pdf: fileName });
+    res.send({ status: data });
   } catch (error) {
     res.json({ status: error });
   }
 });
-
 
 export default router;

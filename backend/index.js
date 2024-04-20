@@ -12,17 +12,22 @@ import jobRoutes from "./routes/jobs.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import dotenv from "dotenv";
-import morgan from "morgan";
+import MyResumeSchema from "./models/ResumePdf.js";
+import multer from "multer";
+// import morgan from "morgan";
+import axios from "axios";
 
 dotenv.config();
 const app = express();
+const storage = multer.memoryStorage(); // Store file data in memory
+const upload = multer({ storage: storage });
 
 //middlewares
 app.use(express.json());
-app.use(morgan("dev"));
+// app.use(morgan("dev"));
 // app.use(cors());
-app.use(cors({ origin: "*", credentials: true }));
-
+// app.use(cors({ origin: "*", credentials: true }));
+app.use(cors());
 app.get("/", (req, res) => {
   console.log(req);
   return res.status(200).send("Welcome ats");
@@ -35,6 +40,7 @@ app.use("/resumesAts", resumesAtsRoutes);
 app.use("/resumes", submittedResumesRoutes);
 app.use("/jobs", jobRoutes);
 app.use("/api/v1/auth", authRoutes);
+
 
 mongoose.connect(mongoDBURL).then(() => {
   console.log("App is connected to the database");

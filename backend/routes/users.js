@@ -1,9 +1,41 @@
 import express from "express";
 import multer from "multer";
 const router = express.Router();
+import axios from "axios";
 
 import { Candidate, Recruiter } from "../models/candidateModel.js";
 import ProfileImg from "../models/ProfileImg.js";
+import MyResumeSchema from "../models/ResumePdf.js";
+// import MyResumeSchema from "./../models/ResumePdf";
+
+
+function flattenJSONArray(jsonArray) {
+  let flattenedArray = [];
+
+  // Iterate through each element of the JSON array
+  jsonArray.forEach(element => {
+      // Check if the element is an array
+      if (Array.isArray(element)) {
+          // If it's an array, iterate through its elements
+          element.forEach(innerElement => {
+              // Check if the inner element is an object
+              if (typeof innerElement === 'object' && innerElement !== null) {
+                  // If it's an object, convert it to a string and push to the flattened array
+                  flattenedArray.push(JSON.stringify(innerElement));
+              } else {
+                  // If it's not an object, simply push it to the flattened array
+                  flattenedArray.push(innerElement);
+              }
+          });
+      } else {
+          // If the element is not an array, simply push it to the flattened array
+          flattenedArray.push(element);
+      }
+  });
+
+  return flattenedArray;
+}
+
 
 // POST - Create a new user
 router.post("/", async (req, res) => {
@@ -28,7 +60,7 @@ router.get("/all", async (req, res) => {
 
 // GET - Retrieve a user by ID
 
-router.get("/:userId/:role", async (req, res) => {
+router.get("/userInfo/:userId/:role", async (req, res) => {
   try {
     console.log("boy is", req.body);
     console.log(req.params);
@@ -71,14 +103,9 @@ const storage = multer.memoryStorage(); // Store file data in memory
 const upload = multer({ storage: storage });
 
 // PUT - Update a user by ID
-router.put("/update/:userId/", upload.single("file"), async (req, res) => {
-  // console.log("Hi from user update");
-  // console.log(req.body);
-  // console.log("Role is ", req.body.role);
-  const file = req.file;
-  // console.log(file);
-  // console.log(typeof req.role);
 
+router.put("/update/:userId/", upload.single("file"), async (req, res) => {
+  const file = req.file;
   if (req.body.role == "1") {
     // console.log("Recruiter");
 
@@ -100,12 +127,7 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
       let profileImg = await ProfileImg.findOne({ userId: req.params.userId });
       console.log("profile Image is", profileImg);
 
-      // console.log("prod::",profileImg);
-
-      // If profileImg is null (i.e., no document found), create a new one
       if (!profileImg) {
-        // Handle case where user ID doesn't exist
-        // console.log("no find");
         const newFile = new ProfileImg({
           userId: req.params.userId,
           contentType: file.mimetype,
@@ -124,8 +146,6 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
         // res.send(profileImg);
         // console.log(newFile);
       } else {
-        // Update the existing document with the new data
-
         const updateImage = await ProfileImg.findOneAndUpdate(
           { userId: req.params.userId },
 
@@ -157,7 +177,84 @@ router.put("/update/:userId/", upload.single("file"), async (req, res) => {
       });
     }
   } else {
-    console.log("Candidate");
+    // console.log("Candidate");
+
+    try {
+      const candidate = await Candidate.findById(req.params.userId);
+      console.log(candidate);
+
+      const updatedCandidate = await Candidate.findByIdAndUpdate(
+        req.params.userId,
+        {
+          name: req.body.name || candidate.name,
+          // company: req.body.company || candidate.company,
+        },
+        {
+          new: true,
+        }
+      );
+
+      let myResume = await MyResumeSchema.findOne({
+        userId: req.params.userId,
+      });
+      console.log("profile Image is", myResume);
+
+      // console.log("prod::",profileImg);
+
+      // If profileImg is null (i.e., no document found), create a new one
+      if (!myResume) {
+        // Handle case where user ID doesn't exist
+        // console.log("no find");
+        const newFile = new MyResumeSchema({
+          userId: req.params.userId,
+          contentType: file.mimetype,
+          data: file.buffer,
+        });
+
+        await newFile.save();
+
+        console.log(newFile);
+        res.status(200).send({
+          success: true,
+          message: "Profile Updated Successfully",
+          updatedCandidate,
+        });
+
+        // res.send(profileImg);
+        // console.log(newFile);
+      } else {
+        // Update the existing document with the new data
+
+        const updateResume = await MyResumeSchema.findOneAndUpdate(
+          { userId: req.params.userId },
+
+          {
+            contentType: file.mimetype || myResume.mimetype,
+            data: file.buffer || myResume.buffer,
+          },
+          {
+            new: true,
+          }
+        );
+
+        // Save the updated document
+        // await updateImage.save();
+        console.log(updateImage);
+        console.log("saved");
+
+        res.status(200).send({
+          success: true,
+          message: "Profile Updated Successfully",
+          updateResume,
+        });
+      }
+    } catch (error) {
+      res.status(400).send({
+        success: false,
+        message: "Error While Updating Recruiter profile",
+        error,
+      });
+    }
   }
 
   // if (req.body.role == "0") {
@@ -221,5 +318,119 @@ router.get("/profileimg", async (req, res) => {
     res.status(400).send(error);
   }
 });
+
+router.post(
+  "/updateCandidate/:userId/",
+  upload.single("file"),
+  async (req, res) => {
+    const file = req.file;
+
+    try {
+      const candidate = await Candidate.findById(req.params.userId);
+      console.log(candidate);
+      if (!candidate) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Candidate not found" });
+      }
+
+      const updatedCandidate = await Candidate.findByIdAndUpdate(
+        req.params.userId,
+        {
+          name: req.body.name || candidate.name,
+        },
+        {
+          new: true,
+        }
+      );
+
+      let resume = await MyResumeSchema.findOne({
+        userId: req.params.userId,
+      });
+
+      console.log("profile Image is", resume);
+
+      if (!resume) {
+        const newFile = new MyResumeSchema({
+          userId: req.params.userId,
+          contentType: file.mimetype,
+          data: file.buffer,
+        });
+
+        await newFile.save();
+        resume = newFile;
+
+        const newdata = {
+          data: file.buffer.toString("base64"),
+          id: req.params.userId,
+          job_description: "hi",
+        };
+
+        const flaskResponse = await axios.post(
+          "http://localhost:9999/predict",
+          newdata
+        );
+
+        console.log("Flask response:", flaskResponse.data);
+
+        console.log(newFile);
+        res.status(200).send({
+          success: true,
+          message: "Profile Updated Successfully",
+          updatedCandidate,
+          resume,
+        });
+
+        // res.send(profileImg);
+        // console.log(newFile);
+      } else {
+        const updateResume = await MyResumeSchema.findOneAndUpdate(
+          { userId: req.params.userId },
+
+          {
+            contentType: file.mimetype || resume.mimetype,
+            data: file.buffer || resume.buffer,
+          },
+          {
+            new: true,
+          }
+        );
+
+        console.log(updateResume);
+        console.log("saved");
+
+        const newdata = {
+          data: file.buffer.toString("base64"),
+          id: req.params.userId,
+          job_description: "hi",
+        };
+
+        console.log("new Data is", newdata);
+
+        const flaskResponse = await axios.post(
+          "http://localhost:9999/predict",
+          newdata
+        );
+
+        console.log("Flask response:", flaskResponse.data);
+        
+
+
+
+        res.status(200).send({
+          success: true,
+          message: "Profile Updated Successfully",
+          updateResume,
+        });
+      }
+    } catch (error) {
+      res.status(400).send({
+        success: false,
+        message: "Error While Updating Recruiter profile",
+        error,
+      });
+    }
+  }
+);
 
 export default router;
