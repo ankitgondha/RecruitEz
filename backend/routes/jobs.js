@@ -7,11 +7,14 @@ import multer from "multer";
 import { isCandidate, isRecruiter } from "../middlewares/authMiddleware.js";
 import JWT from "jsonwebtoken";
 import { sendMail } from "../controllers/sendMail.js";
+import { viewResume } from "../controllers/viewResume.js";
 
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
 
 router.post('/mail', sendMail);
+
+router.get('/resume/:filename', viewResume);
 
 // POST - Create a new job
 router.post("/", async (req, res) => {
@@ -132,26 +135,58 @@ router.get("/:jobId/interviews", async (req, res) => {
   }
 });
 
-// GET - Retrieve all candidates for a job by ID for Interviews
-router.get("/interviews", async (req, res) => {
-  const recruiterId = req.query.recruiterId;
+
+
+
+
+
+router.get('/candidate/:candidateId', async (req, res) => {
+  const candidateId = req.params.candidateId;
+
+  if (!candidateId) {
+      return res.status(400).send({ error: 'Candidate ID is required' });
+  }
+
+  try {
+      const candidate = await Candidate.findById(candidateId).select('name email');
+      if (!candidate) {
+          return res.status(404).send({ error: 'Candidate not found' });
+      }
+      res.status(200).send(candidate);
+  } catch (error) {
+      console.error('Failed to fetch candidate:', error);
+      res.status(500).send({ error: 'Server error', details: error.message });
+  }
+});
+
+// GET - Retrieve all candidates for a Interviews
+router.get("/interviews/:recruiterId", async (req, res) => {
+  const recruiterId = req.params.recruiterId;
 
   if (!recruiterId) {
     return res.status(400).send({ error: 'Recruiter ID is required' });
   }
 
-  console.log(recruiterId);
+  console.log('Recruiter ID:', recruiterId);
   try {
-    console.log('hi');
-    const jobs = await Job.find({ createdBy: recruiterId });
+    // Assuming Job model is correctly linked with the Candidate model
+    const jobs = await Job.find({ createdBy: recruiterId }).populate({
+      path: 'candidates.candidateId',
+      select: 'name email'  // Only fetch name and email from the Candidate document
+    });
+
+    console.log('Jobs found:', jobs.length);  // Debugging output
 
     const candidatesForInterview = jobs.reduce((acc, job) => {
       const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Interview');
       interviewCandidates.forEach(candidate => {
+        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
         acc.push({
           jobId: job._id,
           jobTitle: job.title,
           candidateId: candidate.candidateId,
+          candidateName: candidateDetails.name,  // Added candidate name
+          candidateEmail: candidateDetails.email,  // Added candidate email
           applyDate: candidate.applyDate,
           interviewDate: job.interviews.find(interview => interview.candidateId === candidate.candidateId)?.interviewDate
         });
@@ -162,9 +197,93 @@ router.get("/interviews", async (req, res) => {
     res.status(200).send(candidatesForInterview);
   } catch (error) {
     console.error('Failed to fetch candidate interviews:', error);
-    res.status(500).send({ error: error.message });
+    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
   }
 });
+
+// GET - Retrieve all candidates for a hired
+router.get("/hired/:recruiterId", async (req, res) => {
+  const recruiterId = req.params.recruiterId;
+
+  if (!recruiterId) {
+    return res.status(400).send({ error: 'Recruiter ID is required' });
+  }
+
+  console.log('Recruiter ID:', recruiterId);
+  try {
+    // Assuming Job model is correctly linked with the Candidate model
+    const jobs = await Job.find({ createdBy: recruiterId }).populate({
+      path: 'candidates.candidateId',
+      select: 'name email'  // Only fetch name and email from the Candidate document
+    });
+
+    console.log('Jobs found:', jobs.length);  // Debugging output
+
+    const candidatesForInterview = jobs.reduce((acc, job) => {
+      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Hired');
+      interviewCandidates.forEach(candidate => {
+        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
+        acc.push({
+          jobId: job._id,
+          jobTitle: job.title,
+          candidateId: candidate.candidateId,
+          candidateName: candidateDetails.name,  // Added candidate name
+          candidateEmail: candidateDetails.email,  // Added candidate email
+          applyDate: candidate.applyDate,
+        });
+      });
+      return acc;
+    }, []);
+
+    res.status(200).send(candidatesForInterview);
+  } catch (error) {
+    console.error('Failed to fetch candidate interviews:', error);
+    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
+  }
+});
+
+// GET - Retrieve all candidates for a selected
+router.get("/selected/:recruiterId", async (req, res) => {
+  const recruiterId = req.params.recruiterId;
+
+  if (!recruiterId) {
+    return res.status(400).send({ error: 'Recruiter ID is required' });
+  }
+
+  console.log('Recruiter ID:', recruiterId);
+  try {
+    // Assuming Job model is correctly linked with the Candidate model
+    const jobs = await Job.find({ createdBy: recruiterId }).populate({
+      path: 'candidates.candidateId',
+      select: 'name email'  // Only fetch name and email from the Candidate document
+    });
+
+    console.log('Jobs found:', jobs.length);  // Debugging output
+
+    const candidatesForInterview = jobs.reduce((acc, job) => {
+      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Selected');
+      interviewCandidates.forEach(candidate => {
+        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
+        acc.push({
+          jobId: job._id,
+          jobTitle: job.title,
+          candidateId: candidate.candidateId,
+          candidateName: candidateDetails.name,  // Added candidate name
+          candidateEmail: candidateDetails.email,  // Added candidate email
+          applyDate: candidate.applyDate,
+        });
+      });
+      return acc;
+    }, []);
+
+    res.status(200).send(candidatesForInterview);
+  } catch (error) {
+    console.error('Failed to fetch candidate interviews:', error);
+    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
+  }
+});
+
+
 
 
 // PUT - Update a job by ID

@@ -21,6 +21,8 @@ import { CreateJob } from "./pages/createJob";
 import { InterviewsAll } from "./pages/InterviewsAll";
 import { AllHired } from "./pages/AllHired";
 import { AllSelected } from "./pages/AllSelected";
+import {ViewResume} from "./pages/viewResume";
+
 import Temppage from "./pages/Candidate/Temppage";
 import ShowRecruiterProfile from "./pages/Create-Profile/ShowRecruiterProfile";
 
@@ -36,6 +38,7 @@ function App() {
         <Route path="/interviews-all" element={<InterviewsAll />} />
         <Route path="/hired-all" element={<AllHired />} />
         <Route path="/selected-all" element={<AllSelected />} />
+        <Route path="/view-resume/:candidateId" element={<ViewResume />} />
 
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/login" element={<Login />} />

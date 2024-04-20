@@ -268,7 +268,7 @@ export function InterviewList() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Customer</TableHead>
+                          <TableHead>Candidate</TableHead>
                           <TableHead className="hidden sm:table-cell">
                             Gender
                           </TableHead>

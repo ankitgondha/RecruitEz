@@ -318,7 +318,7 @@ export function Dashboard() {
                   <TableBody>
 
                     {jobs.map((job, index) => (
-                      <TableRow key={index} >
+                      <TableRow  key={index} >
                         <TableCell className="font-medium">
                           {job.title}
                         </TableCell>
@@ -336,28 +336,16 @@ export function Dashboard() {
                         <TableCell className="hidden md:table-cell">
                           {job.createdAt.slice(0, 10)}
                         </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
+                        <TableCell className="hidden md:table-cell" onClick={() => handleJobClick(job._id)}>
+                          <Button size="icon" variant="outline" className="h-6 w-6">
+                          <Button
                                 aria-haspopup="true"
                                 size="icon"
                                 variant="ghost"
                               >
-                                <MoreHorizontal className="h-4 w-4" />
+                            <ChevronRight className="h-10 w-5" />
                                 <span className="sr-only">Toggle menu</span>
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>Edit</DropdownMenuItem>
-                              <DropdownMenuItem>Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell" onClick={() => handleJobClick(job._id)}>
-                          <Button size="icon" variant="outline" className="h-6 w-6">
-                            <ChevronRight className="h-5 w-5" />
                           </Button>
                         </TableCell>
                       </TableRow>

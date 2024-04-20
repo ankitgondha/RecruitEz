@@ -189,6 +189,12 @@ export function JobDashboard() {
     navigate("/");
   };
 
+  
+  const handleResumeOpen = (candidateId) => {
+    const url = `/view-resume/${candidateId}`;
+    window.open(url, '_blank');
+};
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -458,7 +464,7 @@ export function JobDashboard() {
                                 ) ?? "Not Available"}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Eye className="h-5 w-5" color="#313944" />
+                                <Eye onClick={() => handleResumeOpen(candidate._id)} className="h-5 w-5" color="#313944" />
                               </TableCell>
                               <TableCell className="text-right">
                                 {job.candidates[index].status === 'Selected' ? (
