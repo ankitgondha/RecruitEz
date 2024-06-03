@@ -1,32 +1,33 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 import { Recruiter } from "../models/candidateModel.js";
 import { Candidate } from "../models/candidateModel.js";
 
 export const sendMail = async (req, res) => {
+  const { recruiterId, candidateId, jobId, interviewDate } = req.body;
 
-    const {recruiterId, candidateId, jobId, interviewDate} = req.body;
+  const recruiter =
+    (await Recruiter.findById(recruiterId)) || "Unknown Recruiter";
+  const candidate =
+    (await Candidate.findById(candidateId)) || "Unknown Candidate";
 
-    const recruiter = await Recruiter.findById(recruiterId) || "Unknown Recruiter";
-    const candidate = await Candidate.findById(candidateId) || "Unknown Candidate";
+  if (!recruiter || !candidate) {
+    console.error("Recruiter or Candidate not found");
+    return res.status(404).send("Recruiter or Candidate not found");
+  }
 
-    if (!recruiter || !candidate) {
-        console.error("Recruiter or Candidate not found");
-        return res.status(404).send("Recruiter or Candidate not found");
-    }
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.APP_PASSWORD
-        }
-    });
-
-    const emailSubject = `Interview Invitation for a Role at ${recruiter.company}`;
-    const emailHtmlContent = `
+  const emailSubject = `Interview Invitation for a Role at ${recruiter.company}`;
+  const emailHtmlContent = `
         <p>Dear ${candidate.name},</p>
         <p>Thank you for applying to our recent job opening. I am ${recruiter.name}, from ${recruiter.company}, and I am pleased to invite you to the next stage of our recruitment process.</p>
         <p><strong>Interview Details:</strong></p>
@@ -42,25 +43,25 @@ export const sendMail = async (req, res) => {
         <p>${recruiter.name}<br>${recruiter.company}</p>
     `;
 
-    try {
-        const info = await transporter.sendMail({
-            from: {
-                name: `Recruiter ${recruiter.name}`,
-                address: process.env.EMAIL
-            },
-            to: [`${candidate.email}`], // list of receivers
-            subject: emailSubject, // Subject line
-            // text: "Hello world?", // plain text body
-            html: emailHtmlContent, // html body
-        });
-        
-        console.log("Message sent: %s", info.messageId);
-        res.json({
-            message: "Mail sent successfully",
-            info: info
-        });
-    } catch (error) {
-        console.error("Error sending email: ", error);
-        res.status(500).send("Failed to send email");
-    }
-}
+  try {
+    const info = await transporter.sendMail({
+      from: {
+        name: `Recruiter ${recruiter.name}`,
+        address: process.env.EMAIL,
+      },
+      to: [`${candidate.email}`], // list of receivers
+      subject: emailSubject, // Subject line
+      // text: "Hello world?", // plain text body
+      html: emailHtmlContent, // html body
+    });
+
+    console.log("Message sent: %s", info.messageId);
+    res.json({
+      message: "Mail sent successfully",
+      info: info,
+    });
+  } catch (error) {
+    console.error("Error sending email: ", error);
+    res.status(500).send("Failed to send email");
+  }
+};

@@ -7,6 +7,8 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export function SignUp() {
   const [registerEmail, setRegisterEmail] = useState("");
@@ -14,10 +16,11 @@ export function SignUp() {
   const [answer, setAnswer] = useState("");
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   const [role, setRole] = useState("0");
+  const [gender, setGender] = useState("0");
 
   const navigate = useNavigate();
   const location = useLocation();
-
+  const { toast } = useToast();
   const handleSubmit = async (e) => {
     e.preventDefault();
     // console.log(
@@ -27,6 +30,8 @@ export function SignUp() {
     //   registerConfirmPassword,
     //   role
     // );
+
+    // console.log({ registerEmail, role, gender });
     try {
       const res = await axios.post(
         "http://localhost:8080/api/v1/auth/register",
@@ -35,36 +40,101 @@ export function SignUp() {
           password: registerPassword,
           answer,
           role,
+          gender,
         }
       );
       console.log(res);
 
       if (res && res.data.success) {
-        toast.success(res.data && res.data.message);
+        // toast.success(res.data && res.data.message);
 
-        // console.log("ji");
-        // console.log(res.data.message);
-        // setAuth({
-        //   ...auth,
-        //   user: res.data.user,
-        //   token: res.data.token,
-        // });
-        // localStorage.setItem("auth", JSON.stringify(res.data));
+        toast({
+          title: "User registered Successfully",
+        });
 
-        // navigate(location.state || "/");
-        navigate("/login");
+        try {
+          const res = await axios.post(
+            "http://localhost:8080/api/v1/auth/login",
+            {
+              email: registerEmail,
+              password: registerPassword,
+            }
+          );
+
+          console.log(registerEmail, registerPassword);
+
+          if (res && res.data.success) {
+            navigate("/login");
+            // toast.success(res.data && res.data.message);
+
+            // console.log(res.data.message);
+            // console.log("Response data is", res.data);
+            // // console.log(res.data);
+
+            // const candidate = res.data.candidate;
+            // const token = res.data.token;
+
+            // if (candidate) {
+            //   const userId = candidate._id;
+            //   const userRole = candidate.role;
+
+            //   // console.log(window.sessionStorage.getItem("user"));
+            //   window.sessionStorage.setItem("userId", userId);
+            //   window.sessionStorage.setItem("userRole", userRole);
+            //   window.sessionStorage.setItem("token", token);
+
+            //   // navigate("/candidate-dashboard");
+            //   navigate("/candidate-profile");
+            // } else {
+            //   console.log("Hi from login");
+            //   console.log(res.data);
+
+            //   const userId = res.data.recruiter._id;
+            //   const userRole = res.data.recruiter.role;
+
+            //   // console.log(window.sessionStorage.getItem("user"));
+            //   window.sessionStorage.setItem("userId", userId);
+            //   window.sessionStorage.setItem("userRole", userRole);
+            //   window.sessionStorage.setItem("token", token);
+            //   navigate("/recruiter-profile");
+
+            //   // navigate("/dashboard");
+            // }
+          } else {
+            // toast.error(res.data.message);
+            // console.log(res.data.message);
+            toast({
+              title: res.data.message,
+            });
+          }
+        } catch (error) {
+          console.log(error);
+          // toast.error("Something went wrong");
+          toast({
+            title: "something went wrong",
+          });
+        }
       } else {
-        toast.error(res.data.message);
+        toast({
+          title: res.data.message,
+        });
       }
     } catch (error) {
       // console.log(error);
-      toast.error("Something went wrong");
+      toast({
+        title: "something went wrong",
+      });
     }
   };
 
   const handleRoleChange = (event) => {
     const value = parseInt(event.target.value); // Convert value to integer
     setRole(value); // Update role state based on selected value
+  };
+
+  const handleGenderChange = (event) => {
+    const value = parseInt(event.target.value); // Convert value to integer
+    setGender(value); // Update role state based on selected value
   };
 
   // console.log(process.env.REACT_APP_API);
@@ -84,7 +154,7 @@ export function SignUp() {
                 type="email"
                 value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
-                placeholder="m@example.com"
+                placeholder="user@example.com"
                 required
               />
             </div>
@@ -160,6 +230,51 @@ export function SignUp() {
               </div>
             </div>
 
+            <div className="max-w-xs">
+              <label htmlFor="selectGender" className="block mb-2">
+                Gender
+              </label>
+
+              <div id="selectGender" className="flex space-x-4">
+                <input
+                  type="radio"
+                  id="male"
+                  name="gender"
+                  value="0"
+                  checked={gender === 0}
+                  onChange={handleGenderChange}
+                  className="form-radio text-blue-500"
+                />
+                <label htmlFor="male" className="cursor-pointer">
+                  Male
+                </label>
+                <input
+                  type="radio"
+                  id="female"
+                  name="gender"
+                  value="1"
+                  checked={gender === 1}
+                  onChange={handleGenderChange}
+                  className="form-radio text-blue-500"
+                />
+                <label htmlFor="female" className="cursor-pointer">
+                  Female
+                </label>
+                <input
+                  type="radio"
+                  id="other"
+                  name="gender"
+                  value="2"
+                  checked={gender === 2}
+                  onChange={handleGenderChange}
+                  className="form-radio text-blue-500"
+                />
+                <label htmlFor="other" className="cursor-pointer">
+                  Other
+                </label>
+              </div>
+            </div>
+
             <Button onClick={handleSubmit} type="submit" className="w-full">
               Sign Up
             </Button>
@@ -172,14 +287,16 @@ export function SignUp() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block ">
-        <img
-          src="./images/illustration.svg"
-          alt="Image"
-          width="1920"
-          height="1080"
-          className="h-4/5 w-4/5 object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+      <div className="hidden bg-bgCol lg:block">
+        <div className="h-full w-full ">
+          <img
+            src="./images/Login4.jpg"
+            alt="Image"
+            width=""
+            height=""
+            className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          />
+        </div>
       </div>
     </div>
   );

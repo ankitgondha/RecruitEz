@@ -27,7 +27,15 @@ app.use(express.json());
 // app.use(morgan("dev"));
 // app.use(cors());
 // app.use(cors({ origin: "*", credentials: true }));
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:5173", // Allow requests from this origin
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow these methods
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// app.use(cors());
 app.get("/", (req, res) => {
   console.log(req);
   return res.status(200).send("Welcome ats");
@@ -40,7 +48,6 @@ app.use("/resumesAts", resumesAtsRoutes);
 app.use("/resumes", submittedResumesRoutes);
 app.use("/jobs", jobRoutes);
 app.use("/api/v1/auth", authRoutes);
-
 
 mongoose.connect(mongoDBURL).then(() => {
   console.log("App is connected to the database");

@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 import {
   Bell,
   File,
@@ -24,9 +24,7 @@ import {
   CirclePlus,
   UserRoundCheck,
   Headset,
-
-
-} from "lucide-react"
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -34,7 +32,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -42,14 +40,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -57,7 +50,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,13 +59,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import useDataFetch from '@/hooks/useDataFetch';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import useDataFetch from "@/hooks/useDataFetch";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -83,66 +76,127 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
-import { set } from 'mongoose';
-
-
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { set } from "mongoose";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export function CreateJob() {
+  const { toast } = useToast();
 
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
-  const [requirements, setRequirements] = useState('');
-  const [location, setLocation] = useState('');
-  const [salary, setSalary] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [requirements, setRequirements] = useState("");
+  const [location, setLocation] = useState("");
+  const [salary, setSalary] = useState("");
+  const [description, setDescription] = useState("");
   const [seats, setSeats] = useState();
 
-  const handleCreateJob = async () => {
-    console.log(title, requirements, location, salary, description, seats, recruiterId);
-    try {
-      const response = await axios.post(`http://localhost:8080/jobs/`, {
-        title,
-        requirements,
-        location,
-        salaryRange: salary,
-        description,
-        seats,
-        recruiterId
-      });
-
-      console.log("success", response.data.message);
-    } catch (error) {
-      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
-    }
-  }
-  const [recruiterId, setRecruiterid] = useState("");
+  const [recruiterId, setRecruiterId] = useState("");
+  const [currUser, setCurrUser] = useState([]);
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
-    const userId = window.sessionStorage.getItem("userId");
-  console.log("recruiter Id : ", userId);
-  setRecruiterid(userId);
+    const DataLoader = async () => {
+      console.log("came in useEffect");
+      const candidateId = window.sessionStorage.getItem("userId");
+      setRecruiterId(candidateId);
+      // console.log(userId);
+      const role = window.sessionStorage.getItem("userRole");
+      setUserRole(role);
+
+      const requestData = {
+        userId: recruiterId,
+        role: role,
+      };
+
+      const apiUrl = `http://localhost:8080/users/userInfo/${candidateId}/${role}`;
+      await axios
+        .get(apiUrl, requestData)
+        .then((response) => {
+          // Handle successful response
+          // console.log("User data:", response);
+          setCurrUser(response.data);
+        })
+        .catch((error) => {
+          // Handle error
+          console.error("Error fetching user data:", error);
+        });
+      // console.log("user useeffect is", user);
+
+      console.log("User role:", userRole);
+
+      console.log("Hit");
+    };
+
+    DataLoader();
   }, []);
+
+  const handleCreateJob = async () => {
+    console.log(
+      title,
+      requirements,
+      location,
+      salary,
+      description,
+      seats,
+      recruiterId
+    );
+
+    if (currUser.company === "") {
+      toast({
+        title: "Job can't be created, update your company name...",
+      });
+    } else {
+      try {
+        const response = await axios.post(`http://localhost:8080/jobs/`, {
+          title,
+          requirements,
+          location,
+          salaryRange: salary,
+          description,
+          seats,
+          recruiterId,
+        });
+        toast({
+          title: "Job created successfully",
+        });
+        // console.log("success", response.data.message);
+      } catch (error) {
+        console.error(
+          "Failed to add interviewee:",
+          error.response?.data?.error || error.message
+        );
+      }
+    }
+  };
+
+  // const [recruiterId, setRecruiterid] = useState("");
+
+  // useEffect(() => {
+  //   const userId = window.sessionStorage.getItem("userId");
+  //   console.log("recruiter Id : ", userId);
+  //   setRecruiterid(userId);
+  // }, []);
 
   const handleLogout = () => {
     sessionStorage.clear();
     navigate("/");
   };
 
-
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
@@ -152,38 +206,45 @@ export function CreateJob() {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
-                onClick={() => navigate('/create-job')}
+                onClick={() => navigate("/create-job")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
               >
-                <CirclePlus  className="h-4 w-4" />
+                <CirclePlus className="h-4 w-4" />
                 Create Job
               </div>
               <div
-                onClick={() => navigate('/interviews-all')}
+                onClick={() => navigate("/edit-job-status")}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Edit Job Status
+              </div>
+              <div
+                onClick={() => navigate("/interviews-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Headset className="h-4 w-4" />
                 Interview Sceduled
               </div>
               <div
-                onClick={() => navigate('/hired-all')}
+                onClick={() => navigate("/hired-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
                 Hired Candidates
               </div>
               <div
-                onClick={() => navigate('/selected-all')}
+                onClick={() => navigate("/selected-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <UserRoundCheck  className="h-4 w-4" />
+                <UserRoundCheck className="h-4 w-4" />
                 Selected Candidates
               </div>
             </nav>
@@ -197,7 +258,7 @@ export function CreateJob() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-        <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -209,43 +270,50 @@ export function CreateJob() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
-              <div
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </div>
-              <div
-                onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
-              >
-                <CirclePlus  className="h-4 w-4" />
-                Create Job
-              </div>
-              <div
-                onClick={() => navigate('/interviews-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Headset className="h-4 w-4" />
-                Interview Sceduled
-              </div>
-              <div
-                onClick={() => navigate('/hired-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Users className="h-4 w-4" />
-                Hired Candidates
-              </div>
-              <div
-                onClick={() => navigate('/selected-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <UserRoundCheck  className="h-4 w-4" />
-                Selected Candidates
-              </div>
-            </nav>
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate("/create-job")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Create Job
+                </div>
+                <div
+                  onClick={() => navigate("/edit-job-status")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Edit Job Status
+                </div>
+                <div
+                  onClick={() => navigate("/interviews-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Headset className="h-4 w-4" />
+                  Interview Sceduled
+                </div>
+                <div
+                  onClick={() => navigate("/hired-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Hired Candidates
+                </div>
+                <div
+                  onClick={() => navigate("/selected-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <UserRoundCheck className="h-4 w-4" />
+                  Selected Candidates
+                </div>
+              </nav>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
@@ -254,7 +322,6 @@ export function CreateJob() {
                 <div className="flex items-center gap-2 font-semibold">
                   <span className="">Create a New Job</span>
                 </div>
-
               </div>
             </form>
           </div>
@@ -262,29 +329,34 @@ export function CreateJob() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
+                {/* <span className="sr-only">Toggle user menu</span> */}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-recruiter-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-recruiter-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-
           {/* //form */}
 
           <Card x-chunk="dashboard-07-chunk-0">
             <CardHeader>
               <CardTitle>Job Details</CardTitle>
-              <CardDescription>
-                add the details about the job
-              </CardDescription>
+              <CardDescription>add the details about the job</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6">
@@ -293,7 +365,7 @@ export function CreateJob() {
                   <Input
                     id="name"
                     type="text"
-                    className="w-full"
+                    className="w-full text-black"
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
@@ -344,23 +416,33 @@ export function CreateJob() {
             </CardContent>
           </Card>
           <div className="w-10">
-            <Button type="submit" className='flex items center' onClick={()=>{handleCreateJob()}}>Create Job</Button>
+            {/* <Button type="submit" className='flex items center' onClick={()=>{
+              // handleCreateJob()
+              toast({
+                title: "Scheduled: Catch up ",
+                description: "Friday, February 10, 2023 at 5:57 PM",
+                action: (
+                  <ToastAction altText="Goto schedule to undo">Undo</ToastAction>
+                ),
+              })
+              console.log("hit")
+            }}>Create Job</Button> */}
+
+            <Button
+              type="submit"
+              className="flex items center"
+              onClick={() => {
+                handleCreateJob();
+                // toast({
+                //   title: " Job Created Successfully",
+                // });
+              }}
+            >
+              Create Job
+            </Button>
           </div>
-
-
-
-
-
-
-          <div>
-
-          </div>
-
-
-
         </main>
-
       </div>
     </div>
-  )
+  );
 }

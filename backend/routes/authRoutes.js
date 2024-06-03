@@ -4,6 +4,7 @@ import {
   loginController,
   testController,
   updateRecruiterProfileController,
+  updatePasswordController,
 } from "../controllers/authController.js";
 
 import {
@@ -25,6 +26,9 @@ router.post("/register", registerController);
 //login || METHOD POST
 router.post("/login", loginController);
 
+//Forgot Password || POST
+router.post("/forgot-password", updatePasswordController);
+
 //test routes
 router.get("/test", requireSignInRecruiter, isRecruiter, testController);
 
@@ -33,9 +37,5 @@ router.put(
   requireSignInRecruiter,
   updateRecruiterProfileController
 );
-
-
-
-
 
 export default router;

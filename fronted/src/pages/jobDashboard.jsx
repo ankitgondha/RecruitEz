@@ -87,23 +87,34 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { set } from "mongoose";
-import { Recruiter } from "@/models/candidateModel";
-
+// import { set } from "mongoose";
+// import { Recruiter } from "@/models/candidateModel";
 
 export function JobDashboard() {
-  
   const location = useLocation();
   const { jobId } = location.state || {};
   console.log(jobId);
+  const [StarClicker, setStarClicker] = useState(0);
 
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
+  console.log("job data");
   console.log(job);
 
   const jobCandidates = useDataFetch(
     `http://localhost:8080/jobs/${jobId}/candidates`
   );
   console.log("Candidates found:", jobCandidates);
+
+  const [sortedCandidates, setSortedCandidates] = useState([]);
+
+  useEffect(() => {
+    if (jobCandidates && jobCandidates.length > 0) {
+      const sorted = [...jobCandidates].sort(
+        (a, b) => b.ATS_Score - a.ATS_Score
+      );
+      setSortedCandidates(sorted);
+    }
+  }, [jobCandidates]);
 
   const navigate = useNavigate();
 
@@ -117,6 +128,12 @@ export function JobDashboard() {
 
   const handleSelected = async (index) => {
     try {
+      setStarClicker(StarClicker + 1);
+      if (job.candidates[index].status == "Selected") {
+        job.candidates[index].status = "Applied";
+      } else {
+        job.candidates[index].status = "Selected";
+      }
       const response = await axios.put(
         `http://localhost:8080/jobs/toggle-selected/${jobId}`,
         {
@@ -124,18 +141,24 @@ export function JobDashboard() {
         }
       );
 
+      console.log("hii");
+      console.log(job.candidates[index].status);
+
       console.log("Toggle Success:", response.data);
     } catch (error) {
       console.error("Error toggling selected:", error);
     }
   };
+  useEffect(() => {
+    console.log("Selected from useeffect");
+  }, [StarClicker]);
 
   const [recruiterId, setRecruiterid] = useState("");
 
   useEffect(() => {
     const userId = window.sessionStorage.getItem("userId");
-  console.log("recruiter Id : ", userId);
-  setRecruiterid(userId);
+    console.log("recruiter Id : ", userId);
+    setRecruiterid(userId);
   }, []);
 
   const handleInterview = async (index) => {
@@ -147,11 +170,14 @@ export function JobDashboard() {
     console.log(formattedDateTime);
 
     try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/add-interviewee`, {
-        userId : userId,
-        index : index,
-        interviewDate: formattedDateTime
-      });
+      const response = await axios.put(
+        `http://localhost:8080/jobs/${jobId}/add-interviewee`,
+        {
+          userId: userId,
+          index: index,
+          interviewDate: formattedDateTime,
+        }
+      );
 
       console.log(response.data.message);
     } catch (error) {
@@ -163,10 +189,10 @@ export function JobDashboard() {
 
     try {
       const response = await axios.post(`http://localhost:8080/jobs/mail`, {
-        candidateId : userId,
-        jobId : jobId,
-        RecruiterId : recruiterId,
-        interviewDate: formattedDateTime
+        candidateId: userId,
+        jobId: jobId,
+        RecruiterId: recruiterId,
+        interviewDate: formattedDateTime,
       });
 
       console.log("email sent: ", response.data.message);
@@ -189,16 +215,15 @@ export function JobDashboard() {
     navigate("/");
   };
 
-  
   const handleResumeOpen = (candidateId) => {
-    const url = `/view-resume/${candidateId}`;
-    window.open(url, '_blank');
-};
+    const url = `/resume/${candidateId}`;
+    window.open(url, "_blank");
+  };
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
@@ -208,38 +233,45 @@ export function JobDashboard() {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
-                onClick={() => navigate('/create-job')}
+                onClick={() => navigate("/create-job")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <CirclePlus  className="h-4 w-4" />
+                <CirclePlus className="h-4 w-4" />
                 Create Job
               </div>
               <div
-                onClick={() => navigate('/interviews-all')}
+                onClick={() => navigate("/edit-job-status")}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Edit Job Status
+              </div>
+              <div
+                onClick={() => navigate("/interviews-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Headset className="h-4 w-4" />
                 Interview Sceduled
               </div>
               <div
-                onClick={() => navigate('/hired-all')}
+                onClick={() => navigate("/hired-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
                 Hired Candidates
               </div>
               <div
-                onClick={() => navigate('/selected-all')}
+                onClick={() => navigate("/selected-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <UserRoundCheck  className="h-4 w-4" />
+                <UserRoundCheck className="h-4 w-4" />
                 Selected Candidates
               </div>
             </nav>
@@ -253,8 +285,7 @@ export function JobDashboard() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-
-        <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -266,43 +297,50 @@ export function JobDashboard() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
-              <div
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </div>
-              <div
-                onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <CirclePlus  className="h-4 w-4" />
-                Create Job
-              </div>
-              <div
-                onClick={() => navigate('/interviews-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Headset className="h-4 w-4" />
-                Interview Sceduled
-              </div>
-              <div
-                onClick={() => navigate('/hired-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Users className="h-4 w-4" />
-                Hired Candidates
-              </div>
-              <div
-                onClick={() => navigate('/selected-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <UserRoundCheck  className="h-4 w-4" />
-                Selected Candidates
-              </div>
-            </nav>
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate("/create-job")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Create Job
+                </div>
+                <div
+                  onClick={() => navigate("/edit-job-status")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Edit Job Status
+                </div>
+                <div
+                  onClick={() => navigate("/interviews-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Headset className="h-4 w-4" />
+                  Interview Sceduled
+                </div>
+                <div
+                  onClick={() => navigate("/hired-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Hired Candidates
+                </div>
+                <div
+                  onClick={() => navigate("/selected-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <UserRoundCheck className="h-4 w-4" />
+                  Selected Candidates
+                </div>
+              </nav>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
@@ -318,16 +356,24 @@ export function JobDashboard() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
+                {/* <span className="sr-only">Toggle user menu</span> */}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-recruiter-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-recruiter-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -388,7 +434,7 @@ export function JobDashboard() {
               <div className="flex items-center">
                 <TabsList>
                   <TabsTrigger value="all">All Candidates</TabsTrigger>
-                  <TabsTrigger value="top">Top Candidates</TabsTrigger>
+                  {/* <TabsTrigger value="top">Top Candidates</TabsTrigger> */}
                   <TabsTrigger value="selected">
                     Selected Candidates
                   </TabsTrigger>
@@ -430,6 +476,9 @@ export function JobDashboard() {
                             Date
                           </TableHead>
                           <TableHead className="hidden md:table-cell">
+                            ATS
+                          </TableHead>
+                          <TableHead className="hidden md:table-cell">
                             Resume
                           </TableHead>
                           <TableHead className="hidden md:table-cell">
@@ -450,25 +499,42 @@ export function JobDashboard() {
                                 </div>
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
-                                {candidate.gender === 1 ? "Male" : "Female"}
+                                {candidate.gender === 0
+                                  ? "Male"
+                                  : candidate.gender === 1
+                                  ? "Female"
+                                  : "Other"}
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                  {job.candidates[index]?.status ?? "Pending"}
+                                  {candidate.status ?? "Pending"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
-                                {job.candidates[index].appliedDate?.slice(
-                                  0,
-                                  10
-                                ) ?? "Not Available"}
+                                {candidate.applyDate?.slice(0, 10) ??
+                                  "Not Available"}
+                              </TableCell>
+
+                              <TableCell className="hidden md:table-cell">
+                                {job.candidates[index].ATS_Score}
                               </TableCell>
                               <TableCell className="text-right">
-                                <Eye onClick={() => handleResumeOpen(candidate._id)} className="h-5 w-5" color="#313944" />
+                                <Eye
+                                  onClick={() =>
+                                    handleResumeOpen(candidate._id)
+                                  }
+                                  className="h-5 w-5"
+                                  color="#313944"
+                                />
                               </TableCell>
                               <TableCell className="text-right">
-                                {job.candidates[index].status === 'Selected' ? (
-                                  <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                {job.candidates[index].status === "Selected" ? (
+                                  <Star
+                                    className="h-5 w-5"
+                                    color="#313944"
+                                    fill="#313944"
+                                    onClick={() => handleSelected(index)}
+                                  />
                                 ) : (
                                   <Star
                                     className="h-5 w-5"
@@ -529,7 +595,10 @@ export function JobDashboard() {
                         {jobCandidates && jobCandidates.length > 0 ? (
                           jobCandidates
                             .map((candidate, index) => ({ candidate, index }))
-                            .filter(({ candidate, index }) => job.candidates[index].status === "Selected")
+                            .filter(
+                              ({ candidate, index }) =>
+                                job.candidates[index].status === "Selected"
+                            )
                             .map(({ candidate, index }) => (
                               <TableRow>
                                 <TableCell>
@@ -558,8 +627,14 @@ export function JobDashboard() {
                                   <Eye className="h-5 w-5" color="#313944" />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {job.candidates[index].status === 'Selected' ? (
-                                    <Star className="h-5 w-5" color="#313944" fill="#313944" onClick={() => handleSelected(index)} />
+                                  {job.candidates[index].status ===
+                                  "Selected" ? (
+                                    <Star
+                                      className="h-5 w-5"
+                                      color="#313944"
+                                      fill="#313944"
+                                      onClick={() => handleSelected(index)}
+                                    />
                                   ) : (
                                     <Star
                                       className="h-5 w-5"

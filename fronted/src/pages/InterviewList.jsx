@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 import {
   Bell,
   File,
@@ -20,9 +20,7 @@ import {
   CirclePlus,
   UserRoundCheck,
   Headset,
-
-
-} from "lucide-react"
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -30,15 +28,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -46,7 +39,7 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,14 +48,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import useDataFetch from '@/hooks/useDataFetch';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
-
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import useDataFetch from "@/hooks/useDataFetch";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export function InterviewList() {
   const navigate = useNavigate();
@@ -73,48 +64,63 @@ export function InterviewList() {
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
   console.log(job);
 
-  const jobCandidates = useDataFetch(`http://localhost:8080/jobs/${jobId}/candidates`);
+  const jobCandidates = useDataFetch(
+    `http://localhost:8080/jobs/${jobId}/candidates`
+  );
   console.log(jobCandidates);
 
-  const jobInterviews = useDataFetch(`http://localhost:8080/jobs/${jobId}/interviews`);
+  const jobInterviews = useDataFetch(
+    `http://localhost:8080/jobs/${jobId}/interviews`
+  );
   console.log(jobInterviews);
 
   const handleHired = async (userId, index) => {
     console.log(userId, index);
     try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/hire-candidate`, {
-        candidateId : userId
-      });
+      const response = await axios.put(
+        `http://localhost:8080/jobs/${jobId}/hire-candidate`,
+        {
+          candidateId: userId,
+        }
+      );
 
       console.log(response.data.message);
     } catch (error) {
-      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+      console.error(
+        "Failed to add interviewee:",
+        error.response?.data?.error || error.message
+      );
     }
-  }
+  };
 
   const handleReject = async (userId, index) => {
     console.log(userId, index);
     try {
-      const response = await axios.put(`http://localhost:8080/jobs/${jobId}/reject`, {
-        userId
-      });
+      const response = await axios.put(
+        `http://localhost:8080/jobs/${jobId}/reject`,
+        {
+          userId,
+        }
+      );
 
       console.log(response.data.message);
     } catch (error) {
-      console.error('Failed to add interviewee:', error.response?.data?.error || error.message);
+      console.error(
+        "Failed to add interviewee:",
+        error.response?.data?.error || error.message
+      );
     }
-  }
+  };
 
   const handleLogout = () => {
     sessionStorage.clear();
     navigate("/");
   };
 
-
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
@@ -124,38 +130,45 @@ export function InterviewList() {
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
               <div
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate("/dashboard")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
-                onClick={() => navigate('/create-job')}
+                onClick={() => navigate("/create-job")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <CirclePlus  className="h-4 w-4" />
+                <CirclePlus className="h-4 w-4" />
                 Create Job
               </div>
               <div
-                onClick={() => navigate('/interviews-all')}
+                onClick={() => navigate("/edit-job-status")}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Edit Job Status
+              </div>
+              <div
+                onClick={() => navigate("/interviews-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Headset className="h-4 w-4" />
                 Interview Sceduled
               </div>
               <div
-                onClick={() => navigate('/hired-all')}
+                onClick={() => navigate("/hired-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
                 Hired Candidates
               </div>
               <div
-                onClick={() => navigate('/selected-all')}
+                onClick={() => navigate("/selected-all")}
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <UserRoundCheck  className="h-4 w-4" />
+                <UserRoundCheck className="h-4 w-4" />
                 Selected Candidates
               </div>
             </nav>
@@ -169,7 +182,7 @@ export function InterviewList() {
       </div>
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-        <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
@@ -181,43 +194,50 @@ export function InterviewList() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
-              <div
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
-              >
-                <Home className="h-4 w-4" />
-                Dashboard
-              </div>
-              <div
-                onClick={() => navigate('/create-job')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <CirclePlus  className="h-4 w-4" />
-                Create Job
-              </div>
-              <div
-                onClick={() => navigate('/interviews-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Headset className="h-4 w-4" />
-                Interview Sceduled
-              </div>
-              <div
-                onClick={() => navigate('/hired-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <Users className="h-4 w-4" />
-                Hired Candidates
-              </div>
-              <div
-                onClick={() => navigate('/selected-all')}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
-              >
-                <UserRoundCheck  className="h-4 w-4" />
-                Selected Candidates
-              </div>
-            </nav>
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4 cursor-pointer">
+                <div
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
+                >
+                  <Home className="h-4 w-4" />
+                  Dashboard
+                </div>
+                <div
+                  onClick={() => navigate("/create-job")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Create Job
+                </div>
+                <div
+                  onClick={() => navigate("/edit-job-status")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Edit Job Status
+                </div>
+                <div
+                  onClick={() => navigate("/interviews-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Headset className="h-4 w-4" />
+                  Interview Sceduled
+                </div>
+                <div
+                  onClick={() => navigate("/hired-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <Users className="h-4 w-4" />
+                  Hired Candidates
+                </div>
+                <div
+                  onClick={() => navigate("/selected-all")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <UserRoundCheck className="h-4 w-4" />
+                  Selected Candidates
+                </div>
+              </nav>
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
@@ -226,7 +246,6 @@ export function InterviewList() {
                 <div className="flex items-center gap-2 font-semibold">
                   <span className="">Interviews Pending - {job.title}</span>
                 </div>
-
               </div>
             </form>
           </div>
@@ -234,27 +253,31 @@ export function InterviewList() {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
+                {/* <span className="sr-only">Toggle user menu</span> */}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-recruiter-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-recruiter-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-
           {/* //table */}
 
-
-
           <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-
             <Tabs defaultValue="week">
               <TabsContent value="week">
                 <Card>
@@ -281,13 +304,13 @@ export function InterviewList() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-
-
                         {jobInterviews && jobInterviews.length > 0 ? (
                           jobInterviews.map((candidate, index) => (
                             <TableRow>
                               <TableCell>
-                                <div className="font-medium">{candidate.name}</div>
+                                <div className="font-medium">
+                                  {candidate.name}
+                                </div>
                                 <div className="hidden text-sm text-muted-foreground md:inline">
                                   {candidate.email}
                                 </div>
@@ -297,17 +320,30 @@ export function InterviewList() {
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
                                 <Badge className="text-xs" variant="outline">
-                                {job?.candidates[index]?.status}
+                                  {job?.candidates[index]?.status}
                                 </Badge>
                               </TableCell>
                               <TableCell className="hidden md:table-cell">
                                 {candidate.interviewDate ?? "Not Available"}
                               </TableCell>
                               <TableCell>
-                                <Button variant="" size="sm" onClick={() => { handleHired(candidate._id, index) }}>
+                                <Button
+                                  variant=""
+                                  size="sm"
+                                  onClick={() => {
+                                    handleHired(candidate._id, index);
+                                  }}
+                                >
                                   Hire
                                 </Button>
-                                <Button variant="outline" className="ml-5" size="sm" onClick={() => { handleReject(candidate._id, index) }}>
+                                <Button
+                                  variant="outline"
+                                  className="ml-5"
+                                  size="sm"
+                                  onClick={() => {
+                                    handleReject(candidate._id, index);
+                                  }}
+                                >
                                   Reject
                                 </Button>
                               </TableCell>
@@ -320,21 +356,15 @@ export function InterviewList() {
                             </TableCell>
                           </TableRow>
                         )}
-
                       </TableBody>
                     </Table>
                   </CardContent>
                 </Card>
               </TabsContent>
-
             </Tabs>
           </div>
-
-
-
         </main>
-
       </div>
     </div>
-  )
+  );
 }

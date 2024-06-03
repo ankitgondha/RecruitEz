@@ -4,7 +4,7 @@ import JWT from "jsonwebtoken";
 
 export const registerController = async (req, res) => {
   try {
-    const { email, password, answer, role } = req.body;
+    const { email, password, answer, role, gender } = req.body;
     //validations
 
     if (!email) {
@@ -39,6 +39,7 @@ export const registerController = async (req, res) => {
         password: hashedPassword,
         answer,
         role,
+        gender,
       }).save();
 
       res.status(201).send({
@@ -63,6 +64,7 @@ export const registerController = async (req, res) => {
         password: hashedPassword,
         answer,
         role,
+        gender,
       }).save();
 
       res.status(201).send({
@@ -169,6 +171,81 @@ export const loginController = async (req, res) => {
   }
 };
 
+export const updatePasswordController = async (req, res) => {
+  try {
+    const { email, answer, password, role } = req.body;
+
+    if (!email) {
+      res.status(400).send({ message: "Emai is required" });
+    }
+    if (!answer) {
+      res.status(400).send({ message: "answer is required" });
+    }
+    if (!password) {
+      res.status(400).send({ message: "New Password is required" });
+    }
+
+    if (!role) {
+      res.status(400).send({ message: "Role is required" });
+    }
+    //check
+
+    if (role == 1) {
+      const recruiter = await Recruiter.findOne({ email, answer });
+
+      if (!recruiter) {
+        return res.status(404).send({
+          success: false,
+          message: "Wrong Email Or Answer",
+        });
+      }
+      const hashed = await hashPassword(password);
+      await Recruiter.findByIdAndUpdate(recruiter._id, { password: hashed });
+      res.status(200).send({
+        success: true,
+        message: "Password Reset Successfully",
+      });
+    } else {
+      const candidate = await Candidate.findOne({ email, answer });
+
+      if (!candidate) {
+        return res.status(404).send({
+          success: false,
+          message: "Wrong Email Or Answer",
+        });
+      }
+      const hashed = await hashPassword(password);
+      await Candidate.findByIdAndUpdate(candidate._id, { password: hashed });
+      res.status(200).send({
+        success: true,
+        message: "Password Reset Successfully",
+      });
+    }
+
+    // const user = await userModel.findOne({ email, answer });
+    // //validation
+    // if (!user) {
+    //   return res.status(404).send({
+    //     success: false,
+    //     message: "Wrong Email Or Answer",
+    //   });
+    // }
+    // const hashed = await hashPassword(newPassword);
+    // await userModel.findByIdAndUpdate(user._id, { password: hashed });
+    // res.status(200).send({
+    //   success: true,
+    //   message: "Password Reset Successfully",
+    // });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Something went wrong",
+      error,
+    });
+  }
+};
+
 //test controller
 export const testController = (req, res) => {
   //   try {
@@ -183,14 +260,13 @@ export const testController = (req, res) => {
 
 export const updateRecruiterProfileController = async (req, res) => {
   try {
-    const { name, gender, company, profileUrl } = req.body;
+    const { name, company, profileUrl } = req.body;
     const recruiter = await Recruiter.findById(req.recruiter._id);
 
     const updatedRecruiter = await Recruiter.findByIdAndUpdate(
       req.recruiter._id,
       {
         name: name || recruiter.name,
-        gender: gender || recruiter.gender,
         company: company || recruiter.company,
         profileUrl: profileUrl || recruiter.profileUrl,
       },
@@ -205,7 +281,7 @@ export const updateRecruiterProfileController = async (req, res) => {
     // console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error While Update profile",
+      message: "Error While Updating profile",
       error,
     });
   }

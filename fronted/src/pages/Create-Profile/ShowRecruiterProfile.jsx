@@ -62,7 +62,6 @@ const ShowRecruiterProfile = () => {
   const [userId, setUserId] = useState("");
   const [currUser, setCurrUser] = useState([]);
   const [userRole, setUserRole] = useState("");
-  const [imageSrc, setImageSrc] = useState(null);
 
   useEffect(() => {
     const DataLoader = async () => {
@@ -78,7 +77,7 @@ const ShowRecruiterProfile = () => {
         role: role,
       };
 
-      const apiUrl = `http://localhost:8080/users/${candidateId}/${role}`;
+      const apiUrl = `http://localhost:8080/users/userInfo/${candidateId}/${role}`;
       await axios
         .get(apiUrl, requestData)
         .then((response) => {
@@ -100,37 +99,37 @@ const ShowRecruiterProfile = () => {
     DataLoader();
   }, []);
 
-  useEffect(() => {
-    if (userId) {
-      // Check if userId is truthy
-      const fetchImg = async () => {
-        try {
-          const response = await axios.get(
-            `http://localhost:8080/users/profileimg?userId=${userId}`,
-            {
-              responseType: "arraybuffer",
-            }
-          );
+  // useEffect(() => {
+  //   if (userId) {
+  //     // Check if userId is truthy
+  //     const fetchImg = async () => {
+  //       try {
+  //         const response = await axios.get(
+  //           `http://localhost:8080/users/profileimg?userId=${userId}`,
+  //           {
+  //             responseType: "arraybuffer",
+  //           }
+  //         );
 
-          // Convert ArrayBuffer to Base64
-          const base64Data = btoa(
-            new Uint8Array(response.data).reduce(
-              (data, byte) => data + String.fromCharCode(byte),
-              ""
-            )
-          );
+  //         // Convert ArrayBuffer to Base64
+  //         const base64Data = btoa(
+  //           new Uint8Array(response.data).reduce(
+  //             (data, byte) => data + String.fromCharCode(byte),
+  //             ""
+  //           )
+  //         );
 
-          // Set PDF data URL
-          setImageSrc(`data:image/png;base64,${base64Data}`);
-        } catch (error) {
-          console.error("Error fetching PDF data:", error);
-          // setError("Error fetching PDF data. Please try again later.");
-        }
-      };
+  //         // Set PDF data URL
+  //         setImageSrc(`data:image/png;base64,${base64Data}`);
+  //       } catch (error) {
+  //         console.error("Error fetching PDF data:", error);
+  //         // setError("Error fetching PDF data. Please try again later.");
+  //       }
+  //     };
 
-      fetchImg();
-    }
-  }, [userId]);
+  //     fetchImg();
+  //   }
+  // }, [userId]);
 
   console.log(currUser);
 
@@ -143,7 +142,7 @@ const ShowRecruiterProfile = () => {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
@@ -165,6 +164,13 @@ const ShowRecruiterProfile = () => {
               >
                 <CirclePlus className="h-4 w-4" />
                 Create Job
+              </div>
+              <div
+                onClick={() => navigate("/edit-job-status")}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Edit Job Status
               </div>
               <div
                 onClick={() => navigate("/interviews-all")}
@@ -226,6 +232,13 @@ const ShowRecruiterProfile = () => {
                   Create Job
                 </div>
                 <div
+                  onClick={() => navigate("/edit-job-status")}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                >
+                  <CirclePlus className="h-4 w-4" />
+                  Edit Job Status
+                </div>
+                <div
                   onClick={() => navigate("/interviews-all")}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
@@ -263,22 +276,30 @@ const ShowRecruiterProfile = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
+                {/* <span className="sr-only">Toggle user menu</span> */}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-recruiter-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-recruiter-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
 
         <main className="flex gap-4 p-4 lg:gap-6 lg:p-6 h-4/5 justify-center ">
-          <div className="flex justify-center w-2/5">
+          <div className="flex justify-center  w-2/5">
             <Card className="w-full">
               <CardHeader className="p-4">
                 <CardTitle className="text-center">Profile </CardTitle>
@@ -287,7 +308,7 @@ const ShowRecruiterProfile = () => {
                 <div className="flex items-center justify-center gap-4">
                   <div className="w-10 h-10 relative rounded-full overflow-hidden">
                     <Avatar>
-                      <AvatarImage src={imageSrc} alt="@shadcn" />
+                      <AvatarImage alt="@shadcn" />
                       <AvatarFallback>
                         <CircleUser className="h-10 w-10" />
                       </AvatarFallback>
@@ -295,20 +316,37 @@ const ShowRecruiterProfile = () => {
                   </div>
                 </div>
 
-                <div className="grid gap-0.5 text-lg px-6 mx-2 pt-2 mt-1">
-                  <div className="font-semibold my-2">
+                <div className="grid gap-3 text-md px-1 mx-auto py-2 my-2 font-medium">
+                  <div className="my-2">
                     Name:
                     <span className="text-gray-600 mx-4">{currUser.name}</span>
                   </div>
 
-                  <div className="font-semibold my-2">
+                  <div className="">
                     Email:
                     <span className="text-gray-600 mx-4">{currUser.email}</span>
                   </div>
 
-                  <div className="font-semibold my-2">
-                    Company Name:
+                  <div className="">
+                    Gender:
                     <span className="text-gray-600 mx-4">
+                      {currUser.gender === 0
+                        ? "Male"
+                        : currUser.gender === 1
+                        ? "Female"
+                        : "Other"}
+                    </span>
+                  </div>
+
+                  <div className="">
+                    Favourite Sport:
+                    <span className="text-gray-600 mx-2">
+                      {currUser.answer}
+                    </span>
+                  </div>
+                  <div className="">
+                    Company:
+                    <span className="text-gray-600 mx-2">
                       {currUser.company}
                     </span>
                   </div>

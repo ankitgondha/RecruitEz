@@ -7,12 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import toast from "react-hot-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
+
 import axios from "axios";
 // import {updateUser} from "../../redux/actions/actions"
 // import { useDispatch,useSelector } from "react-redux";
 
 export function Login() {
+  const { toast } = useToast();
+
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   // const dispatch = useDispatch();
@@ -32,7 +36,7 @@ export function Login() {
       console.log(loginEmail, loginPassword);
 
       if (res && res.data.success) {
-        toast.success(res.data && res.data.message);
+        // toast.success(res.data && res.data.message);
 
         console.log(res.data.message);
         console.log("Response data is", res.data);
@@ -94,12 +98,18 @@ export function Login() {
 
         // navigate("/");
       } else {
-        toast.error(res.data.message);
-        console.log(res.data.message);
+        // toast.error(res.data.message);
+        // console.log(res.data.message);
+        toast({
+          title: res.data.message,
+        });
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      // toast.error("Something went wrong");
+      toast({
+        title: "something went wrong",
+      });
     }
   };
 
@@ -163,14 +173,16 @@ export function Login() {
           </div>
         </div>
       </div>
-      <div className="hidden bg-muted lg:block ">
-        <img
-          src="./images/illustration.svg"
-          alt="Image"
-          width="1920"
-          height="1080"
-          className="h-4/5 w-4/5 object-cover dark:brightness-[0.2] dark:grayscale"
-        />
+      <div className="hidden bg-bgCol lg:block">
+        <div className="h-full w-full ">
+          <img
+            src="./images/Login4.jpg"
+            alt="Image"
+            width=""
+            height=""
+            className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          />
+        </div>
       </div>
     </div>
   );
