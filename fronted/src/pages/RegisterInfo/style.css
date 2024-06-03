@@ -1,0 +1,6 @@
+.setLoginBg {
+  background-image: url("../../../public/images/bgLog.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+}

@@ -14,7 +14,7 @@ export function ViewResume() {
     useEffect(() => {
         const fetchPdfData = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/jobs/resume/123`, {
+                const response = await axios.get(`http://localhost:8080/jobs/resume/${candidateId}`, {
                     responseType: 'arraybuffer'
                 });
 

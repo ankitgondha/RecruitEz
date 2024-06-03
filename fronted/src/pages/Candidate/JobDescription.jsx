@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 
 import { useNavigate } from "react-router-dom";
+import { ToastAction } from "@/components/ui/toast";
+import { useToast } from "@/components/ui/use-toast";
 
 import {
   Bell,
@@ -69,6 +71,7 @@ import { useLocation } from "react-router-dom";
 import useDataFetch from "@/hooks/useDataFetch";
 
 const JobDescription = () => {
+  const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const { jobId } = location.state || {};
@@ -97,7 +100,7 @@ const JobDescription = () => {
   // console.log(userId);
   const job = useDataFetch(`http://localhost:8080/jobs/${jobId}`);
 
-  console.log("job is ", job);
+  console.log("job is", job);
 
   const handleApply = async () => {
     // console.log(userId);
@@ -109,7 +112,10 @@ const JobDescription = () => {
         jobId,
         token: token,
       });
-      console.log(response.data);
+      // console.log("response is", response.data);
+      toast({
+        title: response.data,
+      });
     } catch (error) {
       console.error("Error Applying for the job", error.response.data);
     }
@@ -130,29 +136,25 @@ const JobDescription = () => {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
               <span className="">RecruiteEz</span>
             </div>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
           </div>
           <div className="flex-1">
             <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
               </div>
               <div
                 onClick={() => navigate("/search-jobs")}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary bg-muted  transition-all hover:text-primary"
               >
                 <Search className="h-4 w-4" />
                 Search Jobs
@@ -261,8 +263,16 @@ const JobDescription = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-candidate-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-candidate-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
@@ -285,7 +295,9 @@ const JobDescription = () => {
                   </div>
                   <div>
                     <span className="font-medium">Date Created:</span>
-                    <span className="mx-4">{job.createdAt}</span>
+                    <span className="mx-4">
+                      {job.createdAt.slice(0, 10) ?? "Not Available"}
+                    </span>
                   </div>
                 </div>
 
@@ -304,7 +316,16 @@ const JobDescription = () => {
                 >
                   Back
                 </Button>
-                <Button onClick={handleApply}>Apply</Button>
+                <Button
+                  onClick={() => {
+                    handleApply();
+                    toast({
+                      title: " Job Applied Successfully",
+                    });
+                  }}
+                >
+                  Apply
+                </Button>
               </CardFooter>
             </Card>
           </main>

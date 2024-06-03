@@ -77,7 +77,9 @@ const AppliedJobs = () => {
     for (let i = 0; i < candidateArray.length; i++) {
       if (
         candidateArray[i].candidateId === userId &&
-        candidateArray[i].status === "Applied"
+        (candidateArray[i].status === "Applied" ||
+          candidateArray[i].status === "Selected" ||
+          candidateArray[i].status === "Hired")
       ) {
         matchedJobs.push({
           jobId: job._id,
@@ -106,22 +108,18 @@ const AppliedJobs = () => {
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="fixed flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <div href="/" className="flex items-center gap-2 font-semibold">
               <Package2 className="h-6 w-6" />
               <span className="">RecruiteEz</span>
             </div>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
           </div>
           <div className="flex-1">
             <nav className="grid cursor-pointer items-start px-2 text-sm font-medium lg:px-4">
               <div
                 onClick={() => navigate("/candidate-dashboard")}
-                className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 transition-all text-muted-foreground hover:text-primary"
               >
                 <Home className="h-4 w-4" />
                 Dashboard
@@ -133,7 +131,7 @@ const AppliedJobs = () => {
                 <Search className="h-4 w-4" />
                 Search Jobs
               </div>
-              <div className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
+              <div className="flex items-center text-primary gap-3 rounded-lg px-3 py-2 transition-all bg-muted  hover:text-primary">
                 <Package className="h-4 w-4" />
                 Jobs Applied
               </div>
@@ -233,8 +231,16 @@ const AppliedJobs = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/edit-candidate-profile")}
+              >
+                Edit Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/view-candidate-profile")}
+              >
+                View Profile
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
@@ -282,7 +288,7 @@ const AppliedJobs = () => {
                               {job.location}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                              {job.appliedDate}
+                              {job.appliedDate.slice(0, 10) ?? "Not Available"}
                             </TableCell>
 
                             <TableCell>

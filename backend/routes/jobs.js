@@ -1,26 +1,36 @@
 import express from "express";
 const router = express.Router();
 import { Job } from "../models/jobSchema.js";
-import { Candidate } from "../models/candidateModel.js";
+import { Candidate, Recruiter } from "../models/candidateModel.js";
 import { ResumeFile } from "../models/jobSchema.js";
 import multer from "multer";
 import { isCandidate, isRecruiter } from "../middlewares/authMiddleware.js";
 import JWT from "jsonwebtoken";
 import { sendMail } from "../controllers/sendMail.js";
 import { viewResume } from "../controllers/viewResume.js";
-import MyResumeSchema from "../models/ResumePdf.js"
+import MyResumeSchema from "../models/ResumePdf.js";
 import axios from "axios";
 
-const storage = multer.memoryStorage(); 
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post('/mail', sendMail);
+router.post("/mail", sendMail);
 
-router.get('/resume/:filename', viewResume);
+router.get("/resume/:userId", viewResume);
 
 // POST - Create a new job
 router.post("/", async (req, res) => {
   try {
+    const recruiterId = req.body.recruiterId;
+    if (!recruiterId) {
+      return res.status(400).send({ error: "Recruiter ID is required" });
+    }
+
+    const recruiter = await Recruiter.findById(recruiterId);
+    if (!recruiter) {
+      return res.status(404).send({ error: "Recruiter not found" });
+    }
+
     const job = new Job({
       title: req.body.title,
       requirements: req.body.requirements,
@@ -28,21 +38,22 @@ router.post("/", async (req, res) => {
       salaryRange: req.body.salaryRange,
       description: req.body.description,
       seats: req.body.seats,
-      createdBy: req.body.recruiterId, 
-      active: true, 
-      status: "none"
+      createdBy: recruiterId,
+      company: recruiter.company,
+      active: true,
+      status: "none",
     });
 
     await job.save();
     res.status(201).send(job);
   } catch (error) {
-    console.error('Failed to create job:', error);
+    console.error("Failed to create job:", error);
     res.status(400).send({ error: error.message });
   }
 });
 
 // GET - Retrieve all jobs
-router.get("/all", isCandidate, async (req, res) => {
+router.get("/all", async (req, res) => {
   try {
     const jobs = await Job.find({});
     res.send(jobs);
@@ -52,24 +63,24 @@ router.get("/all", isCandidate, async (req, res) => {
 });
 
 // GET endpoint to fetch jobs by recruiter ID
-router.get("/all/recruiter", async (req, res) => {
-  try {
-    const recruiterId = req.query.recruiterId;
-    if (!recruiterId) {
-      return res.status(400).send({ error: 'Recruiter ID is required' });
-    }
+// router.get("/all/recruiter", async (req, res) => {
+//   try {
+//     const recruiterId = req.query.recruiterId;
+//     if (!recruiterId) {
+//       return res.status(400).send({ error: "Recruiter ID is required" });
+//     }
 
-    // Find all jobs where 'createdBy' matches the provided recruiter ID
-    const jobs = await Job.find({ createdBy: recruiterId });
+//     // Find all jobs where 'createdBy' matches the provided recruiter ID
+//     const jobs = await Job.find({ createdBy: recruiterId });
 
-    // Respond with the found jobs
-    res.status(200).send(jobs);
-  } catch (error) {
-    // Log the error and respond with a 500 status code for server error
-    console.error('Failed to fetch jobs:', error);
-    res.status(500).send({ error: error.message });
-  }
-});
+//     // Respond with the found jobs
+//     res.status(200).send(jobs);
+//   } catch (error) {
+//     // Log the error and respond with a 500 status code for server error
+//     console.error("Failed to fetch jobs:", error);
+//     res.status(500).send({ error: error.message });
+//   }
+// });
 
 // GET - Retrieve a single job by ID
 router.get("/:jobId", async (req, res) => {
@@ -137,27 +148,24 @@ router.get("/:jobId/interviews", async (req, res) => {
   }
 });
 
-
-
-
-
-
-router.get('/candidate/:candidateId', async (req, res) => {
+router.get("/candidate/:candidateId", async (req, res) => {
   const candidateId = req.params.candidateId;
 
   if (!candidateId) {
-      return res.status(400).send({ error: 'Candidate ID is required' });
+    return res.status(400).send({ error: "Candidate ID is required" });
   }
 
   try {
-      const candidate = await Candidate.findById(candidateId).select('name email');
-      if (!candidate) {
-          return res.status(404).send({ error: 'Candidate not found' });
-      }
-      res.status(200).send(candidate);
+    const candidate = await Candidate.findById(candidateId).select(
+      "name email"
+    );
+    if (!candidate) {
+      return res.status(404).send({ error: "Candidate not found" });
+    }
+    res.status(200).send(candidate);
   } catch (error) {
-      console.error('Failed to fetch candidate:', error);
-      res.status(500).send({ error: 'Server error', details: error.message });
+    console.error("Failed to fetch candidate:", error);
+    res.status(500).send({ error: "Server error", details: error.message });
   }
 });
 
@@ -166,31 +174,35 @@ router.get("/interviews/:recruiterId", async (req, res) => {
   const recruiterId = req.params.recruiterId;
 
   if (!recruiterId) {
-    return res.status(400).send({ error: 'Recruiter ID is required' });
+    return res.status(400).send({ error: "Recruiter ID is required" });
   }
 
-  console.log('Recruiter ID:', recruiterId);
+  console.log("Recruiter ID:", recruiterId);
   try {
     // Assuming Job model is correctly linked with the Candidate model
     const jobs = await Job.find({ createdBy: recruiterId }).populate({
-      path: 'candidates.candidateId',
-      select: 'name email'  // Only fetch name and email from the Candidate document
+      path: "candidates.candidateId",
+      select: "name email", // Only fetch name and email from the Candidate document
     });
 
-    console.log('Jobs found:', jobs.length);  // Debugging output
+    console.log("Jobs found:", jobs.length); // Debugging output
 
     const candidatesForInterview = jobs.reduce((acc, job) => {
-      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Interview');
-      interviewCandidates.forEach(candidate => {
-        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
+      const interviewCandidates = job.candidates.filter(
+        (candidate) => candidate.status === "Interview"
+      );
+      interviewCandidates.forEach((candidate) => {
+        const candidateDetails = candidate.candidateId; // This now contains candidate details populated from the database
         acc.push({
           jobId: job._id,
           jobTitle: job.title,
           candidateId: candidate.candidateId,
-          candidateName: candidateDetails.name,  // Added candidate name
-          candidateEmail: candidateDetails.email,  // Added candidate email
+          candidateName: candidateDetails.name, // Added candidate name
+          candidateEmail: candidateDetails.email, // Added candidate email
           applyDate: candidate.applyDate,
-          interviewDate: job.interviews.find(interview => interview.candidateId === candidate.candidateId)?.interviewDate
+          interviewDate: job.interviews.find(
+            (interview) => interview.candidateId === candidate.candidateId
+          )?.interviewDate,
         });
       });
       return acc;
@@ -198,8 +210,11 @@ router.get("/interviews/:recruiterId", async (req, res) => {
 
     res.status(200).send(candidatesForInterview);
   } catch (error) {
-    console.error('Failed to fetch candidate interviews:', error);
-    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
+    console.error("Failed to fetch candidate interviews:", error);
+    res.status(500).send({
+      error: "Failed to fetch candidate interviews",
+      details: error.message,
+    });
   }
 });
 
@@ -208,29 +223,31 @@ router.get("/hired/:recruiterId", async (req, res) => {
   const recruiterId = req.params.recruiterId;
 
   if (!recruiterId) {
-    return res.status(400).send({ error: 'Recruiter ID is required' });
+    return res.status(400).send({ error: "Recruiter ID is required" });
   }
 
-  console.log('Recruiter ID:', recruiterId);
+  console.log("Recruiter ID:", recruiterId);
   try {
     // Assuming Job model is correctly linked with the Candidate model
     const jobs = await Job.find({ createdBy: recruiterId }).populate({
-      path: 'candidates.candidateId',
-      select: 'name email'  // Only fetch name and email from the Candidate document
+      path: "candidates.candidateId",
+      select: "name email", // Only fetch name and email from the Candidate document
     });
 
-    console.log('Jobs found:', jobs.length);  // Debugging output
+    console.log("Jobs found:", jobs.length); // Debugging output
 
     const candidatesForInterview = jobs.reduce((acc, job) => {
-      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Hired');
-      interviewCandidates.forEach(candidate => {
-        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
+      const interviewCandidates = job.candidates.filter(
+        (candidate) => candidate.status === "Hired"
+      );
+      interviewCandidates.forEach((candidate) => {
+        const candidateDetails = candidate.candidateId; // This now contains candidate details populated from the database
         acc.push({
           jobId: job._id,
           jobTitle: job.title,
           candidateId: candidate.candidateId,
-          candidateName: candidateDetails.name,  // Added candidate name
-          candidateEmail: candidateDetails.email,  // Added candidate email
+          candidateName: candidateDetails.name, // Added candidate name
+          candidateEmail: candidateDetails.email, // Added candidate email
           applyDate: candidate.applyDate,
         });
       });
@@ -239,8 +256,11 @@ router.get("/hired/:recruiterId", async (req, res) => {
 
     res.status(200).send(candidatesForInterview);
   } catch (error) {
-    console.error('Failed to fetch candidate interviews:', error);
-    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
+    console.error("Failed to fetch candidate interviews:", error);
+    res.status(500).send({
+      error: "Failed to fetch candidate interviews",
+      details: error.message,
+    });
   }
 });
 
@@ -249,29 +269,31 @@ router.get("/selected/:recruiterId", async (req, res) => {
   const recruiterId = req.params.recruiterId;
 
   if (!recruiterId) {
-    return res.status(400).send({ error: 'Recruiter ID is required' });
+    return res.status(400).send({ error: "Recruiter ID is required" });
   }
 
-  console.log('Recruiter ID:', recruiterId);
+  console.log("Recruiter ID:", recruiterId);
   try {
     // Assuming Job model is correctly linked with the Candidate model
     const jobs = await Job.find({ createdBy: recruiterId }).populate({
-      path: 'candidates.candidateId',
-      select: 'name email'  // Only fetch name and email from the Candidate document
+      path: "candidates.candidateId",
+      select: "name email", // Only fetch name and email from the Candidate document
     });
 
-    console.log('Jobs found:', jobs.length);  // Debugging output
+    console.log("Jobs found:", jobs.length); // Debugging output
 
     const candidatesForInterview = jobs.reduce((acc, job) => {
-      const interviewCandidates = job.candidates.filter(candidate => candidate.status === 'Selected');
-      interviewCandidates.forEach(candidate => {
-        const candidateDetails = candidate.candidateId;  // This now contains candidate details populated from the database
+      const interviewCandidates = job.candidates.filter(
+        (candidate) => candidate.status === "Selected"
+      );
+      interviewCandidates.forEach((candidate) => {
+        const candidateDetails = candidate.candidateId; // This now contains candidate details populated from the database
         acc.push({
           jobId: job._id,
           jobTitle: job.title,
           candidateId: candidate.candidateId,
-          candidateName: candidateDetails.name,  // Added candidate name
-          candidateEmail: candidateDetails.email,  // Added candidate email
+          candidateName: candidateDetails.name, // Added candidate name
+          candidateEmail: candidateDetails.email, // Added candidate email
           applyDate: candidate.applyDate,
         });
       });
@@ -280,13 +302,13 @@ router.get("/selected/:recruiterId", async (req, res) => {
 
     res.status(200).send(candidatesForInterview);
   } catch (error) {
-    console.error('Failed to fetch candidate interviews:', error);
-    res.status(500).send({ error: 'Failed to fetch candidate interviews', details: error.message });
+    console.error("Failed to fetch candidate interviews:", error);
+    res.status(500).send({
+      error: "Failed to fetch candidate interviews",
+      details: error.message,
+    });
   }
 });
-
-
-
 
 // PUT - Update a job by ID
 router.put("/:jobId", async (req, res) => {
@@ -308,6 +330,7 @@ router.put("/:jobId", async (req, res) => {
 router.put("/toggle-selected/:jobId", async (req, res) => {
   const { index } = req.body; // Index of the candidate in the candidates array
   const { jobId } = req.params;
+  console.log(index);
 
   try {
     // Fetch the current job to access the candidates array
@@ -316,9 +339,9 @@ router.put("/toggle-selected/:jobId", async (req, res) => {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-      // Check the current status and toggle it accordingly
-      const currentStatus = job.candidates[index].status;
-      const newStatus = currentStatus === 'Selected' ? 'Applied' : 'Selected';
+    // Check the current status and toggle it accordingly
+    const currentStatus = job.candidates[index].status;
+    const newStatus = currentStatus == "Selected" ? "Applied" : "Selected";
 
     // Update the status of the specific candidate
     const result = await Job.updateOne(
@@ -326,7 +349,7 @@ router.put("/toggle-selected/:jobId", async (req, res) => {
         _id: jobId,
         [`candidates.${index}.candidateId`]: job.candidates[index].candidateId,
       },
-      { $set: { [`candidates.$[].status`]: newStatus } }
+      { $set: { [`candidates.${index}.status`]: newStatus } }
     );
 
     res.status(200).json({ success: true, data: result });
@@ -334,6 +357,8 @@ router.put("/toggle-selected/:jobId", async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+
+
 
 // DELETE - Delete a job by ID
 router.delete("/:jobId", async (req, res) => {
@@ -349,8 +374,8 @@ router.delete("/:jobId", async (req, res) => {
 });
 
 // Endpoint to add a user to the interviews array
-router.put('/:jobId/add-interviewee', async (req, res) => {
-  console.log('Received data for job:', req.body);
+router.put("/:jobId/add-interviewee", async (req, res) => {
+  console.log("Received data for job:", req.body);
   const { index, userId, interviewDate } = req.body;
   const { jobId } = req.params;
 
@@ -362,22 +387,35 @@ router.put('/:jobId/add-interviewee', async (req, res) => {
     }
 
     // Update or add the interview
-    let interviewExists = job.interviews.some(interview => interview.candidateId === userId);
+    let interviewExists = job.interviews.some(
+      (interview) => interview.candidateId === userId
+    );
     if (interviewExists) {
       // Update existing interview date
-      job.interviews = job.interviews.map(interview => 
-        interview.candidateId === userId ? { ...interview, interviewDate: interviewDate } : interview
+      job.interviews = job.interviews.map((interview) =>
+        interview.candidateId === userId
+          ? { ...interview, interviewDate: interviewDate }
+          : interview
       );
     } else {
       // Add a new interview
-      job.interviews.push({ candidateId: userId, interviewDate: interviewDate });
+      job.interviews.push({
+        candidateId: userId,
+        interviewDate: interviewDate,
+      });
     }
 
     // Update candidate status to 'interview'
-    if (index >= 0 && index < job.candidates.length && job.candidates[index].candidateId === userId) {
-      job.candidates[index].status = 'Interview';
+    if (
+      index >= 0 &&
+      index < job.candidates.length &&
+      job.candidates[index].candidateId === userId
+    ) {
+      job.candidates[index].status = "Interview";
     } else {
-      return res.status(400).send('Candidate index is out of bounds or candidate ID mismatch');
+      return res
+        .status(400)
+        .send("Candidate index is out of bounds or candidate ID mismatch");
     }
 
     // Save the updated job document
@@ -385,17 +423,16 @@ router.put('/:jobId/add-interviewee', async (req, res) => {
 
     res.json({
       success: true,
-      message: interviewExists ? 'Interviewee updated successfully' : 'New interviewee added successfully',
-      job
+      message: interviewExists
+        ? "Interviewee updated successfully"
+        : "New interviewee added successfully",
+      job,
     });
   } catch (error) {
-    console.error('Error adding/updating interviewee:', error);
+    console.error("Error adding/updating interviewee:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
-
-
 
 // Route to set a candidate's status to 'hired' and remove them from interviews
 router.put("/:jobId/hire-candidate", async (req, res) => {
@@ -410,15 +447,21 @@ router.put("/:jobId/hire-candidate", async (req, res) => {
     }
 
     // Find the candidate in the candidates array
-    const candidateIndex = job.candidates.findIndex(cand => cand.candidateId === candidateId);
+    const candidateIndex = job.candidates.findIndex(
+      (cand) => cand.candidateId === candidateId
+    );
     if (candidateIndex === -1) {
-      return res.status(400).send({ error: 'Candidate not found in job candidates' });
+      return res
+        .status(400)
+        .send({ error: "Candidate not found in job candidates" });
     }
 
     // Remove the candidate from the interviews array
-    job.interviews = job.interviews.filter(interview => interview.candidateId !== candidateId);
+    job.interviews = job.interviews.filter(
+      (interview) => interview.candidateId !== candidateId
+    );
 
-    job.candidates[candidateIndex].status = 'Hired';
+    job.candidates[candidateIndex].status = "Hired";
     job.hired.push(candidateId);
 
     await job.save();
@@ -434,44 +477,150 @@ router.put("/:jobId/hire-candidate", async (req, res) => {
   }
 });
 
-
 //to reject a candidate
-router.put('/:jobId/reject', async (req, res) => {
-  const { userId } = req.body; 
+router.put("/:jobId/reject", async (req, res) => {
+  const { userId } = req.body;
   const { jobId } = req.params;
 
   try {
-      // Use $addToSet to avoid adding duplicates
-      const job = await Job.findByIdAndUpdate(jobId);
+    // Use $addToSet to avoid adding duplicates
+    const job = await Job.findByIdAndUpdate(jobId);
 
     if (!job) {
       return res.status(404).send("Job not found");
     }
 
-      const candidateIndex = job.candidates.findIndex(cand => cand.candidateId === userId);
+    const candidateIndex = job.candidates.findIndex(
+      (cand) => cand.candidateId === userId
+    );
     if (candidateIndex === -1) {
-      return res.status(400).send({ error: 'Candidate not found in job candidates' });
+      return res
+        .status(400)
+        .send({ error: "Candidate not found in job candidates" });
     }
 
     // Remove the candidate from the interviews array
-    job.interviews = job.interviews.filter(interview => interview.candidateId !== userId);
+    job.interviews = job.interviews.filter(
+      (interview) => interview.candidateId !== userId
+    );
 
     // Update the status of the candidate to 'rejected'
-    job.candidates[candidateIndex].status = 'Rejected';
-
+    job.candidates[candidateIndex].status = "Rejected";
 
     // Save the job document
     await job.save();
 
-      res.json({ success: true, message: 'rejected successfully', job });
+    res.json({ success: true, message: "rejected successfully", job });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
+//Apply for the job
+// router.post("/apply", async (req, res) => {
+//   const { jobId } = req.body;
 
+//   console.log(req.body);
+//   // const userId = req.body.tokenDetails._id;
+//   // console.log(userId);
+//   try {
+//     const job = await Job.findById(jobId);
 
+//     if (!job) {
+//       return res.status(404).json({ message: "Jobs not found" });
+//     }
 
+//     console.log("Hi from jobs");
+
+//     try {
+//       // const decode = JWT.verify(
+//       //   req.body.token,
+//       //   process.env.JWT_SECRET_CANDIDATE
+//       // );
+//       // console.log("token info is", decode);
+//       // req.body.tokenDetails = decode;
+//       // console.log("<<");
+//       // console.log(req.body.tokenDetails);
+//       // console.log("<<");
+
+//       const userId = req.body.tokenDetails._id;
+//       console.log("<<");
+//       console.log("user id is", userId);
+//       console.log("<<");
+
+//       const hasApplied = job.candidates.some(
+//         (candidate) => candidate.candidateId === userId
+//       );
+//       if (hasApplied) {
+//         return res.status(401).json({
+//           success: false,
+//           message: "You have already applied for the job",
+//         });
+//       }
+
+//       let resume = await MyResumeSchema.findOne({
+//         userId:userId,
+//       });
+
+//       if (!resume) {
+//         return res.send("No resume found")
+//       }
+
+//       console.log(resume)
+
+//       const base64Data = btoa(
+//         new Uint8Array(resume.data).reduce(
+//           (data, byte) => data + String.fromCharCode(byte),
+//           ""
+//         )
+//       );
+
+//       const newdata = {
+//         data:base64Data,
+//         id:userId,
+//         job_description: job.description,
+//       };
+
+//       console.log(newdata)
+
+//       // console.log("new Data is", newdata);
+
+//       // const flaskResponse = await axios.post(
+//       //   "http://localhost:9999/predict",
+//       //   newdata
+//       // );
+
+//       // console.log("Flask response:", flaskResponse.data);
+
+//       const candidates_var = {
+//         candidateId: userId,
+//         ATS_Score:"20"
+//       };
+
+//       job.candidates.push(candidates_var);
+//     } catch (error) {
+//       res.status(401).send({
+//         success: false,
+//         error,
+//         message: "Error in token verification",
+//       });
+//     }
+
+//     // console.log(candidates_var);
+
+//     // job.candidates.push(candidates_var);
+//     // job.candidates.push(userId);
+//     console.log("final job is", job);
+//     await job.save();
+
+//     return res
+//       .status(200)
+//       .json({ message: "Successfully applied for the job" });
+//   } catch (error) {
+//     console.error("Error Applying for the job", error);
+//     return res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
 
 //Apply for the job
 router.post("/apply", isCandidate, async (req, res) => {
@@ -490,16 +639,6 @@ router.post("/apply", isCandidate, async (req, res) => {
     console.log("Hi from jobs");
 
     try {
-      // const decode = JWT.verify(
-      //   req.body.token,
-      //   process.env.JWT_SECRET_CANDIDATE
-      // );
-      // console.log("token info is", decode);
-      // req.body.tokenDetails = decode;
-      // console.log("<<");
-      // console.log(req.body.tokenDetails);
-      // console.log("<<");
-
       const userId = req.body.tokenDetails._id;
       console.log("<<");
       console.log("user id is", userId);
@@ -515,16 +654,15 @@ router.post("/apply", isCandidate, async (req, res) => {
         });
       }
 
-
       let resume = await MyResumeSchema.findOne({
-        userId:userId,
+        userId: userId,
       });
 
       if (!resume) {
-        return res.send("No resume found")
+        return res.send("No resume found");
       }
 
-      console.log(resume)
+      console.log(resume);
 
       const base64Data = btoa(
         new Uint8Array(resume.data).reduce(
@@ -534,32 +672,37 @@ router.post("/apply", isCandidate, async (req, res) => {
       );
 
       const newdata = {
-        data:base64Data,
-        id:userId,
+        data: base64Data,
+        id: userId,
         job_description: job.description,
       };
 
-      console.log(newdata)
+      console.log(newdata);
 
-      // console.log("new Data is", newdata);
+      console.log("new Data is", newdata);
+
+      console.log("hey i am wating");
 
       const flaskResponse = await axios.post(
-        "http://localhost:9999/predict",
+        "http://127.0.0.1:9999/predict",
         newdata
       );
 
       console.log("Flask response:", flaskResponse.data);
-      
-      
-
-
-
       const candidates_var = {
         candidateId: userId,
-        ATS_Score:flaskResponse.data.ATS
+        ATS_Score: flaskResponse.data.ATS,
       };
-
+      job.candidates.sort((a, b) => b.ATS_Score - a.ATS_Score);
       job.candidates.push(candidates_var);
+      job.candidates.sort((a, b) => b.ATS_Score - a.ATS_Score);
+
+      console.log("final job is", job);
+      await job.save();
+
+      return res
+        .status(200)
+        .json({ message: "Successfully applied for the job" });
     } catch (error) {
       res.status(401).send({
         success: false,
@@ -572,18 +715,11 @@ router.post("/apply", isCandidate, async (req, res) => {
 
     // job.candidates.push(candidates_var);
     // job.candidates.push(userId);
-    console.log("final job is", job);
-    await job.save();
-
-    return res
-      .status(200)
-      .json({ message: "Successfully applied for the job" });
   } catch (error) {
     console.error("Error Applying for the job", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 router.post("/tokenDetails", async (req, res) => {
   const token = req.body;
@@ -665,7 +801,42 @@ router.post("/upload", upload.single("file"), async (req, res, next) => {
   }
 });
 
+router.put("/:id/status", async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    const { active } = req.body;
 
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      { active, updatedAt: new Date() },
+      { new: true }
+    );
 
+    if (!updatedJob) {
+      return res.status(404).send({ message: "Job not found" });
+    }
+
+    res.send(updatedJob);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
+router.get("/all/recruiter", async (req, res) => {
+  const recruiterId = req.query.recruiterId;
+
+  if (!recruiterId) {
+    return res
+      .status(400)
+      .send({ message: "recruiterId query parameter is required" });
+  }
+
+  try {
+    const jobs = await Job.find({ createdBy: recruiterId });
+    res.status(200).json(jobs);
+  } catch (error) {
+    res.status(500).send({ message: "Error fetching jobs", error });
+  }
+});
 
 export default router;

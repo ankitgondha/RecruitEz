@@ -68,6 +68,10 @@ const recruiterSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    gender: {
+      type: Number,
+      default: 0,
+    },
     jobPostId: {
       type: Object,
     },
